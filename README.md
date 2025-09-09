@@ -10,27 +10,6 @@ Dibuat untuk tugas mata kuliah **PBP**.
 - **Nama**: Keisha Vania Laurent  
 - **Kelas**: PBP B  
 
-## Struktur Proyek
-kick-corner/
-├─ kick_corner/
-│ ├─ settings.py
-│ ├─ urls.py
-│ ├─ asgi.py
-│ └─ wsgi.py
-├─ main/
-│ ├─ migrations/
-│ ├─ templates/
-│ │ └─ main.html
-│ ├─ models.py
-│ ├─ views.py
-│ ├─ urls.py
-│ ├─ apps.py
-│ ├─ tests.py
-│ └─ admin.py
-├─ assets/
-├─ manage.py
-└─ requirements.txt
-
 # Tugas Individu 2
 
 ## Implementasi checklist
