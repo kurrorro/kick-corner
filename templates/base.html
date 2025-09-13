@@ -1,0 +1,25 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Title{% endblock title %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- style dengan CSS -->
+    <style>
+        body { font-family: system-ui, Arial, sans-serif; margin: 24px; line-height: 1.5; }
+        ul { list-style: none; padding: 0; }
+        li { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
+        img { width: 100%; max-width: 320px; height: auto; border-radius: 8px; display: block; }
+        .meta { font-size: 12px; color: #555; }
+        .price { font-weight: 700; }
+    </style>
+
+    {% block extra_css %}{% endblock extra_css %}
+    {% block meta %}{% endblock meta %}
+</head>
+<body>
+    {% block content %}{% endblock content %}
+</body>
+</html>

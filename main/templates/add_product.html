@@ -1,0 +1,55 @@
+{% extends 'base.html' %} 
+{% block title %}Kick Corner – Add Product{% endblock title %}
+{% block content %}
+<h1>Add Product</h1>
+
+<style>
+  form { max-width: 400px; }
+  table { width: 100%; border-collapse: collapse; }
+  th {
+    text-align: left;
+    font-weight: normal;
+    padding-right: 8px;
+    vertical-align: top;
+  }
+  td { padding: 4px; vertical-align: top; }
+  input:not([type="checkbox"]), select, textarea {
+    width: 100%;
+    box-sizing: border-box;
+    display: block;
+    padding: 6px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  input[type="checkbox"] {
+    width: auto;
+    display: inline-block;
+    margin-right: 6px;
+  }
+  input[type="submit"] {
+    width: auto;
+    background: #111827;
+    color: #fff;
+    border: none;
+    margin-top: 6px;
+    cursor: pointer;
+  }
+  input[type="submit"]:hover {
+    background: #1f2937;
+  }
+</style>
+
+<form method="POST">
+    {% csrf_token %} <!-- security -->
+    <table>
+    {{ form.as_table }}
+    <tr>
+      <td></td>
+      <td>
+        <input type="submit" value="Add Product" />
+      </td>
+    </tr>
+  </table>
+</form>
+
+{% endblock %}

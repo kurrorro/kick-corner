@@ -1,19 +1,17 @@
-<!doctype html>
-<html lang="id">
-<head>
-  <meta charset="utf-8">
-  <title>Kick Corner – Products</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <style>
-    body { font-family: system-ui, Arial, sans-serif; margin: 24px; line-height: 1.5; }
-    ul { list-style: none; padding: 0; }
-    li { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
-    img { width: 100%; max-width: 320px; height: auto; border-radius: 8px; display: block; }
-    .meta { font-size: 12px; color: #555; }
-    .price { font-weight: 700; }
-  </style>
-</head>
-<body>
+{% extends "base.html" %}
+{% block title %}Kick Corner – Products{% endblock title %}
+
+{% block extra_css %}
+<style>
+    .actions { display:flex; gap:8px; margin:12px 0 16px; }
+    .btn { display:inline-block; padding:8px 12px; border-radius:8px; border:1px solid #e5e7eb; text-decoration:none; font-weight:600; }
+    .btn-primary { background:#111827; color:#fff; border-color:#111827; }
+    .btn-outline { background:#fff; color:#111827; }
+    .btn:hover { filter:brightness(0.96); }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
   <header>
     <h1>{{ shop }}</h1>
     <p>{{ npm }} — {{ name }} ({{ class }})</p>
@@ -21,6 +19,11 @@
 
   <main>
     <h2>Products</h2>
+
+    {# tombol add product #}
+    <div class="actions">
+        <a href="{% url 'main:add_product' %}" class="btn btn-primary">+ Add Product</a>
+    </div>
 
     <ul>
       {% for p in products %}
@@ -30,7 +33,7 @@
               <img src="{{ p.thumbnail }}" alt="{{ p.name }} thumbnail" loading="lazy">
             {% endif %}
 
-            <h3>{{ p.name }}</h3>
+            <h3><a href="{% url 'main:show_product' p.id %}">{{ p.name }}</a></h3>
 
             <p class="meta">
               {{ p.get_category_display }}
@@ -39,7 +42,11 @@
             </p>
 
             <p class="price">Rp {{ p.price }}</p>
-            <p>{{ p.description }}</p>
+
+            {# tombol view detail #}
+            <div class="actions">
+                <a href="{% url 'main:show_product' p.id %}" class="btn btn-outline">View details</a>
+            </div>
           </article>
         </li>
       {% empty %}
@@ -51,6 +58,4 @@
   <footer>
     <small>© {{ name }}</small>
   </footer>
-</body>
-</html>
-
+{% endblock content %}
