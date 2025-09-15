@@ -274,7 +274,7 @@ Untuk 4 fungsi pertama tujuannya sama, yaitu mengambil data dari model Product l
     - `<p class="description">{{ product.description }}</p>`
   - Memberi styling dengan CSS
 
-## Apakah ada feedback untuk asisten dosen tutorial 1?
+## Apakah ada feedback untuk asisten dosen tutorial 2?
 
 Tidak ada.
 
