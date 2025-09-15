@@ -169,7 +169,7 @@ Karena itu, JSON dianggap lebih unggul. Dengan XML, kita harus mengambil dokumen
 - Mengecek apakah semua field yang wajib diisi sudah terisi
 - Mengecek apakah format data sesuai (misalnya email valid, angka benar, panjang teks sesuai batas)
 - Menjalankan semua custom validation yang kita buat di form
-Jika semua validasi lolos, is_valid() akan mengembalikan True. Jika ada kesalahan, akan mengembalikan False dan kita bisa melihat daftar error lewat `form.errors`.
+- Jika semua validasi lolos, is_valid() akan mengembalikan True. Jika ada kesalahan, akan mengembalikan False dan kita bisa melihat daftar error lewat `form.errors`.
 
 ### **Kenapa dibutuhkan?**
 
@@ -197,79 +197,99 @@ Misalnya, jika pengguna sedang login ke situs bank, penyerang dapat membuat hala
 
 1. **Menambahkan 4 + 2 fungsi di `views`: `show_xml`, `show_json`, `show_xml_by_id`, `show_json_by_id`, `add_product`, `show_product`**
 Untuk 4 fungsi pertama tujuannya sama, yaitu mengambil data dari model Product lalu menampilkannya dalam format tertentu (XML atau JSON). Langkah umumnya seperti ini:
-- Ambil data dari database
-  - Bisa semua data (`Product.objects.all()`)
-  - Atau satu data berdasarkan ID (pakai `filter(pk=...)` atau `get(pk=...)`)
-- Serialize data
-  - `serializers.serialize("xml", data) `untuk mengubah menjadi XML
-  - `serializers.serialize("json", data)` untuk mengubah menjadi JSON
-- Kirim hasil ke browser
-  - Kembalikan data hasil serialize dalam `HttpResponse`
-  - Sertakan content_type yang sesuai: `"application/xml"` atau `"application/json"`
-- Handle jika data tidak ditemukan
-  - Jika ID tidak ada, kembalikan `HttpResponse(status=404)`
+  - Ambil data dari database
+    - Bisa semua data (`Product.objects.all()`)
+    - Atau satu data berdasarkan ID (pakai `filter(pk=...)` atau `get(pk=...)`)
+  - Serialize data
+    - `serializers.serialize("xml", data) `untuk mengubah menjadi XML
+    - `serializers.serialize("json", data)` untuk mengubah menjadi JSON
+  - Kirim hasil ke browser
+    - Kembalikan data hasil serialize dalam `HttpResponse`
+    - Sertakan content_type yang sesuai: `"application/xml"` atau `"application/json"`
+  - Handle jika data tidak ditemukan
+    - Jika ID tidak ada, kembalikan `HttpResponse(status=404)`
 
-Untuk fungsi `add_product`, tujuannya adalah menambahkan data produk baru ke dalam database melalui sebuah form yang diisi oleh pengguna.
-- Membuat instance `ProductForm` dan mengambil data dari `request.POST` (atau none jika tidak ada input).
-- Melakukan validasi dengan `form.is_valid()` dan cek apakah method request adalah POST
-- Menyimpan data ke database dengan `form.save()` jika valid.
-- Melakukan redirect (ke `show_main`) setelah berhasil submit.
-- Jika tidak valid atau request pertama kali (GET), render `add_product.html` dengan context `{'form': form}`.
+  Untuk fungsi `add_product`, tujuannya adalah menambahkan data produk baru ke dalam database melalui sebuah form yang diisi oleh pengguna.
+  - Membuat instance `ProductForm` dan mengambil data dari `request.POST` (atau none jika tidak ada input).
+  - Melakukan validasi dengan `form.is_valid()` dan cek apakah method request adalah POST
+  - Menyimpan data ke database dengan `form.save()` jika valid.
+  - Melakukan redirect (ke `show_main`) setelah berhasil submit.
+  - Jika tidak valid atau request pertama kali (GET), render `add_product.html` dengan context `{'form': form}`.
 
-Untuk fungsi `show_product`, tujuannya adalah menampilkan detail satu produk berdasarkan ID sekaligus menambah jumlah tampilan (views).
-- Mengambil objek produk berdasarkan `ID` dengan `get_object_or_404` agar otomatis `404` jika produk tidak ditemukan.
-- Menambah jumlah views produk dengan memanggil method `product.increment_views()`.
-- Menyusun context `{'product': product}` untuk dikirim ke template.
-- Merender halaman detail `product_detail.html` untuk menampilkan detail produk ke pengguna.
+  Untuk fungsi `show_product`, tujuannya adalah menampilkan detail satu produk berdasarkan ID sekaligus menambah jumlah tampilan (views).
+  - Mengambil objek produk berdasarkan `ID` dengan `get_object_or_404` agar otomatis `404` jika produk tidak ditemukan.
+  - Menambah jumlah views produk dengan memanggil method `product.increment_views()`.
+  - Menyusun context `{'product': product}` untuk dikirim ke template.
+  - Merender halaman detail `product_detail.html` untuk menampilkan detail produk ke pengguna.
 
 2. **Membuat routing URL untuk masing fungsi pada `views`**
-- Mendefinisikan daftar urlpatterns di file `urls.py`. Di dalamnya, setiap `path()` berisi pola URL (seperti `/add-product/` atau `/xml/`) dan nama fungsi `view` yang akan menangani permintaan ke URL tersebut. 
-- Saya juga memberikan name pada setiap path supaya URL itu bisa dipanggil atau redirect dengan mudah.
+  - Mendefinisikan daftar urlpatterns di file `urls.py`. Di dalamnya, setiap `path()` berisi pola URL (seperti `/add-product/` atau `/xml/`) dan nama fungsi `view` yang akan menangani permintaan ke URL tersebut. 
+  - Saya juga memberikan name pada setiap path supaya URL itu bisa dipanggil atau redirect dengan mudah.
 
 3. **Membuat halaman yang menampilkan data objek model yang memiliki tombol `Add` yang akan redirect ke halaman form, serta tombol `Detail` pada setiap data objek model yang akan menampilkan halaman detail objek.**
-- Membuat tombol **`+ Add Product`**
-  - Terdapat elemen `<a>` dengan `href="{% url 'main:add_product' %}"` yang akan mengarahkan pengguna ke halaman form penambahan produk.
-- Menampilkan daftar produk dalam bentuk loop
-  - Menggunakan `{% for p in products %}` untuk menampilkan semua objek produk yang dikirim dari views.
-  - Untuk setiap produk:
-    - Menampilkan gambar thumbnail jika ada.
-    - Menampilkan nama produk (`{{ p.name }}`) yang dibungkus `<a>` menuju halaman detail (`{% url 'main:show_product' p.id %}`).
-    - Menampilkan informasi (kategori, brand, dan status featured).
-    - Menampilkan harga produk (`{{ p.price }}`).
-  - Menangani kondisi tanpa produk
-    - Jika tidak ada data produk, blok `{% empty %}` akan menampilkan pesan "There is no product yet.".
-- Membuat tombol **`View details`** pada setiap produk.
-  - Tombol ini mengarah ke halaman detail produk berdasarkan ID produk.
-  - Saat diklik, pengguna diarahkan ke `show_product` untuk melihat informasi lengkap produk.
-- Memberikan styling dengan CSS
+  - Membuat tombol **`+ Add Product`**
+    - Terdapat elemen `<a>` dengan `href="{% url 'main:add_product' %}"` yang akan mengarahkan pengguna ke halaman form penambahan produk.
+  - Menampilkan daftar produk dalam bentuk loop
+    - Menggunakan `{% for p in products %}` untuk menampilkan semua objek produk yang dikirim dari views.
+    - Untuk setiap produk:
+      - Menampilkan gambar thumbnail jika ada.
+      - Menampilkan nama produk (`{{ p.name }}`) yang dibungkus `<a>` menuju halaman detail (`{% url 'main:show_product' p.id %}`).
+      - Menampilkan informasi (kategori, brand, dan status featured).
+      - Menampilkan harga produk (`{{ p.price }}`).
+    - Menangani kondisi tanpa produk
+      - Jika tidak ada data produk, blok `{% empty %}` akan menampilkan pesan "There is no product yet.".
+  - Membuat tombol **`View details`** pada setiap produk.
+    - Tombol ini mengarah ke halaman detail produk berdasarkan ID produk.
+    - Saat diklik, pengguna diarahkan ke `show_product` untuk melihat informasi lengkap produk.
+  - Memberikan styling dengan CSS
 
 4. **Membuat halaman form untuk menambahkan objek model pada app sebelumnya.**
-- Membuat `ProductForm` sebagai `ModelForm`
-  - Didefinisikan di `forms.py`.
-  - `ModelForm` ini akan secara otomatis membuat field form berdasarkan field yang ada di model `Product`, sehingga tidak perlu menulis field satu per satu secara manual.
-- Menampilkan form di template
-  - Template `add_product.html` mewarisi `base.html` dan membuat judul halaman “Add Product”.
-  - Bagian `<form>` menggunakan `method="POST"` karena akan mengirim data ke server.
-  - `{% csrf_token %}` digunakan untuk keamanan.
-  - `{{ form.as_table }}` menampilkan seluruh field form dalam bentuk tabel secara otomatis.
-  - Ada tombol `<input type="submit" value="Add Product" />` untuk mengirim form.
-- Memberi styling dengan CSS
+  - Membuat `ProductForm` sebagai `ModelForm`
+    - Didefinisikan di `forms.py`.
+    - `ModelForm` ini akan secara otomatis membuat field form berdasarkan field yang ada di model `Product`, sehingga tidak perlu menulis field satu per satu secara manual.
+  - Menampilkan form di template
+    - Template `add_product.html` mewarisi `base.html` dan membuat judul halaman “Add Product”.
+    - Bagian `<form>` menggunakan `method="POST"` karena akan mengirim data ke server.
+    - `{% csrf_token %}` digunakan untuk keamanan.
+    - `{{ form.as_table }}` menampilkan seluruh field form dalam bentuk tabel secara otomatis.
+    - Ada tombol `<input type="submit" value="Add Product" />` untuk mengirim form.
+  - Memberi styling dengan CSS
 
 5. **Membuat halaman yang menampilkan detail dari setiap data objek model.**
-- Mengatur judul halaman dengan nama produk
-  - `{% block title %}{{ product.name }}{% endblock %}` agar tab browser menampilkan nama produk.
-- Tombol kembali ke daftar
-  - `<a href="{% url 'main:show_main' %}" class="back-btn">…</a>` mengarahkan pengguna kembali ke halaman list produk.
-- Menampilkan judul dan metadata produk
-  - `<h1>{{ product.name }}</h1>` untuk nama.
-  - Bagian meta menampilkan:
-    - `{{ product.get_category_display }}` (label dari choices kategori).
-    - `{{ product.brand }}`, ukuran `{{ product.size }}`, stok `{{ product.stock }}`.
-    - Badge “Featured” bila `product.is_featured` true.
-    - Tanggal dibuat `{{ product.created_at|date:"d M Y, H:i" }}`.
-- Menampilkan thumbnail bila ada
-  - `{% if product.thumbnail %} <img src="{{ product.thumbnail }}" …> {% endif %}`.
-- Menampilkan harga dan deskripsi
-  - `<p class="price">Rp {{ product.price }}</p>`
-  - `<p class="description">{{ product.description }}</p>`
-- Memberi styling dengan CSS
+  - Mengatur judul halaman dengan nama produk
+    - `{% block title %}{{ product.name }}{% endblock %}` agar tab browser menampilkan nama produk.
+  - Tombol kembali ke daftar
+    - `<a href="{% url 'main:show_main' %}" class="back-btn">…</a>` mengarahkan pengguna kembali ke halaman list produk.
+  - Menampilkan judul dan metadata produk
+    - `<h1>{{ product.name }}</h1>` untuk nama.
+    - Bagian meta menampilkan:
+      - `{{ product.get_category_display }}` (label dari choices kategori).
+      - `{{ product.brand }}`, ukuran `{{ product.size }}`, stok `{{ product.stock }}`.
+      - Badge “Featured” bila `product.is_featured` true.
+      - Tanggal dibuat `{{ product.created_at|date:"d M Y, H:i" }}`.
+  - Menampilkan thumbnail bila ada
+    - `{% if product.thumbnail %} <img src="{{ product.thumbnail }}" …> {% endif %}`.
+  - Menampilkan harga dan deskripsi
+    - `<p class="price">Rp {{ product.price }}</p>`
+    - `<p class="description">{{ product.description }}</p>`
+  - Memberi styling dengan CSS
+
+## Apakah ada feedback untuk asisten dosen tutorial 1?
+
+Tidak ada.
+
+## Screenshot postman
+
+### http://localhost:8000/xml
+![XML](assets/xml1.png)
+![XML](assets/xml2.png)
+
+### http://localhost:8000/json
+![JSON](assets/json1.png)
+![JSON](assets/json2.png)
+
+### http://localhost:8000/xml/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
+![XML with ID](assets/xml_id.png)
+
+### http://localhost:8000/json/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
+![JSON with ID](assets/json_id.png)
