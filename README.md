@@ -281,15 +281,15 @@ Tidak ada.
 ## Screenshot postman
 
 ### http://localhost:8000/xml
-![XML](assets/xml1.png)
-![XML](assets/xml2.png)
+![XML](assets/xml-1.png)
+![XML](assets/xml-2.png)
 
 ### http://localhost:8000/json
-![JSON](assets/json1.png)
-![JSON](assets/json2.png)
+![JSON](assets/json-1.png)
+![JSON](assets/json-2.png)
 
 ### http://localhost:8000/xml/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
-![XML with ID](assets/xml_id.png)
+![XML with ID](assets/xml-id.png)
 
 ### http://localhost:8000/json/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
-![JSON with ID](assets/json_id.png)
+![JSON with ID](assets/json-id.png)
