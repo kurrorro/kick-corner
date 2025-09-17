@@ -23,9 +23,18 @@
     {# tombol add product #}
     <div class="actions">
         <a href="{% url 'main:add_product' %}" class="btn btn-primary">+ Add Product</a>
+        <a href="{% url 'main:logout' %}" class="btn btn-primary">Logout</a>
     </div>
 
+    <h5>Sesi terakhir login: {{ last_login }}</h5>
+
     <ul>
+
+      <div class="actions">
+        <a href="?filter=all" class="btn btn-primary">All Product</a>
+        <a href="?filter=my" class="btn btn-primary">My Product</a>
+      </div>
+
       {% for p in products %}
         <li>
           <article>
