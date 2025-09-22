@@ -26,6 +26,7 @@
         <a href="{% url 'main:logout' %}" class="btn btn-primary">Logout</a>
     </div>
 
+    <h5>Username: {{ user.username }}</h5>
     <h5>Sesi terakhir login: {{ last_login }}</h5>
 
     <ul>

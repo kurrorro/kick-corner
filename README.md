@@ -196,7 +196,8 @@ Misalnya, jika pengguna sedang login ke situs bank, penyerang dapat membuat hala
 ## Implementasi checklist
 
 1. **Menambahkan 4 + 2 fungsi di `views`: `show_xml`, `show_json`, `show_xml_by_id`, `show_json_by_id`, `add_product`, `show_product`**
-Untuk 4 fungsi pertama tujuannya sama, yaitu mengambil data dari model Product lalu menampilkannya dalam format tertentu (XML atau JSON). Langkah umumnya seperti ini:
+
+- Untuk 4 fungsi pertama tujuannya sama, yaitu mengambil data dari model Product lalu menampilkannya dalam format tertentu (XML atau JSON). Langkah umumnya seperti ini:
   - Ambil data dari database
     - Bisa semua data (`Product.objects.all()`)
     - Atau satu data berdasarkan ID (pakai `filter(pk=...)` atau `get(pk=...)`)
@@ -209,14 +210,14 @@ Untuk 4 fungsi pertama tujuannya sama, yaitu mengambil data dari model Product l
   - Handle jika data tidak ditemukan
     - Jika ID tidak ada, kembalikan `HttpResponse(status=404)`
 
-  Untuk fungsi `add_product`, tujuannya adalah menambahkan data produk baru ke dalam database melalui sebuah form yang diisi oleh pengguna.
+- Untuk fungsi `add_product`, tujuannya adalah menambahkan data produk baru ke dalam database melalui sebuah form yang diisi oleh pengguna.
   - Membuat instance `ProductForm` dan mengambil data dari `request.POST` (atau none jika tidak ada input).
   - Melakukan validasi dengan `form.is_valid()` dan cek apakah method request adalah POST
   - Menyimpan data ke database dengan `form.save()` jika valid.
   - Melakukan redirect (ke `show_main`) setelah berhasil submit.
   - Jika tidak valid atau request pertama kali (GET), render `add_product.html` dengan context `{'form': form}`.
 
-  Untuk fungsi `show_product`, tujuannya adalah menampilkan detail satu produk berdasarkan ID sekaligus menambah jumlah tampilan (views).
+- Untuk fungsi `show_product`, tujuannya adalah menampilkan detail satu produk berdasarkan ID sekaligus menambah jumlah tampilan (views).
   - Mengambil objek produk berdasarkan `ID` dengan `get_object_or_404` agar otomatis `404` jika produk tidak ditemukan.
   - Menambah jumlah views produk dengan memanggil method `product.increment_views()`.
   - Menyusun context `{'product': product}` untuk dikirim ke template.
@@ -293,3 +294,56 @@ Tidak ada.
 
 ### http://localhost:8000/json/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
 ![JSON with ID](assets/json-id.png)
+
+# Tugas Individu 4
+
+## Apa itu Django AuthenticationForm? Bagaimana kelebihan dan kekurangannya?
+
+`AuthenticationForm` adalah form bawaan di Django yang digunakan untuk melakukan proses login (autentikasi) menggunakan username dan password.
+
+### Kelebihan
+
+- **Siap pakai**. Kita tidak perlu menulis logic dasar login sendiri, form sudah mengurus pengecekan username/password serta validasi lainnya.
+- **Integrasi dengan sistem autentikasi Django**. Karena form ini bagian dari django.contrib.auth, dia bekerja dengan baik dengan backend autentikasi, session, middleware, dan setting lain yang terkait.
+- **Bisa dikostumisasi**. Jika kita butuh aturan login tambahan (misalnya harus verifikasi email dulu, memblokir berdasarkan domain, atau memeriksa kondisi khusus), kita bisa subclass `AuthenticationForm` dan override metode yang ada.
+- **Keamanan**. Karena built-in, sudah diuji di banyak aplikasi dan komunitas, serta sudah meng-handle hal-hal dasar seperti hashing password, pengecekan akun aktif, dsb. Ini membantu menghindarkan banyak masalah keamanan yang muncul kalau kita mulai dari nol.
+
+## Perbedaan antara autentikasi dan otorisasi dan bagaiamana Django mengimplementasikan kedua konsep tersebut?
+
+### Autentikasi vs Otorisasi
+
+| **Autentikasi** | **Otorisasi** |
+|-------------|-----------|
+| Verifikasi identitas pengguna. | Penentuan hak akses & izin pengguna. |
+| Dilakukan **sebelum** otorisasi. | Dilakukan **setelah** autentikasi. |
+| Butuh data login (username, password, OTP, biometrik). | Butuh informasi peran (role) atau level akses. |
+| Menjawab pertanyaan: **“Siapa kamu?”** | Menjawab pertanyaan: **“Apa yang boleh kamu lakukan?”** |
+| **Contoh:** login ke akun. | **Contoh:** akses halaman admin hanya untuk user dengan role *admin*. |
+
+### Implementasi Authentication dan Authorization di Django
+
+**Authentication (Autentikasi)** di Django diimplementasikan melalui sistem **backend** yang memverifikasi identitas pengguna. Secara default, Django menggunakan `ModelBackend` yang memeriksa *username* dan *password* dengan fungsi `authenticate()`. Jika valid, fungsi `login()` akan membuat **session** dan menambahkan identitas pengguna ke dalam `request.user`.  
+
+Django menyimpan **Session ID** di sisi klien melalui cookie `sessionid`, sementara detail sesi disimpan di server.  
+Dengan begitu, setiap request berikutnya bisa dikenali sebagai milik pengguna tertentu tanpa perlu login ulang.  
+
+Form bawaan seperti `UserCreationForm` (untuk registrasi) dan `AuthenticationForm` (untuk login) memudahkan developer dalam mengelola autentikasi pengguna di aplikasi web.
+
+---
+
+**Authorization (Otorisasi)** di Django mengatur apa yang boleh dilakukan pengguna setelah terautentikasi. Django menyediakan **permission** dan **group** untuk mengelola hak akses secara detail.  
+
+- `@login_required` memastikan hanya pengguna login yang bisa mengakses suatu view.  
+- `PermissionRequiredMixin` membatasi akses berdasarkan izin tertentu.  
+
+Pada tingkat model, otorisasi bisa diterapkan dengan menambahkan `ForeignKey` ke model `User`, sehingga setiap data dikaitkan dengan pemiliknya. Developer kemudian dapat membatasi akses menggunakan `request.user`, misalnya hanya menampilkan data yang dibuat oleh pengguna tersebut.  
+
+Dengan cara ini, Django memastikan kontrol akses berjalan sesuai aturan yang ditetapkan dalam aplikasi.
+
+## Apakah penggunaan cookies aman secara default dalam pengembangan web, atau apakah ada risiko potensial yang harus diwaspadai? Bagaimana Django menangani hal tersebut?
+
+### Penggunaan & risiko cookies dalam pengembangan web
+
+### Bagaimana menangani risiko tersebut?
+
+## Implementasi Checklist
