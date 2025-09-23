@@ -308,6 +308,12 @@ Tidak ada.
 - **Bisa dikostumisasi**. Jika kita butuh aturan login tambahan (misalnya harus verifikasi email dulu, memblokir berdasarkan domain, atau memeriksa kondisi khusus), kita bisa subclass `AuthenticationForm` dan override metode yang ada.
 - **Keamanan**. Karena built-in, sudah diuji di banyak aplikasi dan komunitas, serta sudah meng-handle hal-hal dasar seperti hashing password, pengecekan akun aktif, dsb. Ini membantu menghindarkan banyak masalah keamanan yang muncul kalau kita mulai dari nol.
 
+### Kekurangan
+
+- **Tampilan & UX dasar**. Perlu kustomisasi template/form (widget, label, pesan error) agar sesuai desain.
+- **Tidak ada rate limiting / lockout**. Perlu ada proteksi terhadap upaya login berulang (brute-force) sebagai bagian dari form default. Fitur seperti CAPTCHA harus ditambahkan secara eksternal.
+- **Login pakai email bukan default**. Butuh backend kustom atau subclass `AuthenticationForm` agar autentikasi pakai email.
+
 ## Perbedaan antara autentikasi dan otorisasi dan bagaiamana Django mengimplementasikan kedua konsep tersebut?
 
 ### Autentikasi vs Otorisasi
@@ -340,10 +346,121 @@ Pada tingkat model, otorisasi bisa diterapkan dengan menambahkan `ForeignKey` ke
 
 Dengan cara ini, Django memastikan kontrol akses berjalan sesuai aturan yang ditetapkan dalam aplikasi.
 
+## Kelebihan & Kekurangan Session vs Cookies (menyimpan state)
+
+### Session (server-side)
+
+**Kelebihan**
+- **Lebih aman**: data disimpan di server, browser hanya memegang `sessionid`.
+- **Kapasitas fleksibel**: tidak dibatasi 4KB seperti cookie.
+- **Mudah dicabut**: logout/invalidasi di server langsung menonaktifkan sesi.
+
+**Kekurangan**
+- **Butuh penyimpanan server**: database/cache ada biaya perawatan & pembersihan.
+- **Skalabilitas**: butuh shared store (cache/DB) atau sticky session saat multi-server.
+- **Kompleksitas operasional**: konfigurasi dan monitoring store sesi.
+
+### Cookies (client-side)
+
+**Kelebihan**
+- **Sederhana & ringan untuk preferensi**: cocok untuk data kecil yang tidak sensitif (mis. tema, tampilan).
+- **Persisten**: bisa bertahan antar sesi browser dengan expiry yang diatur.
+
+**Kekurangan**
+- **Batas ukuran**: umumnya 4KB per cookie.
+- **Risiko keamanan**: rentan XSS/CSRF/pencurian jika tidak `HttpOnly/Secure/SameSite`.
+- **Mudah dimodifikasi klien**: perlu signed/encrypted jika menyimpan nilai penting.
+
 ## Apakah penggunaan cookies aman secara default dalam pengembangan web, atau apakah ada risiko potensial yang harus diwaspadai? Bagaimana Django menangani hal tersebut?
 
 ### Penggunaan & risiko cookies dalam pengembangan web
 
-### Bagaimana menangani risiko tersebut?
+Cookies **tidak sepenuhnya aman secara default**, karena memiliki beberapa potensi risiko:
+- **Tidak terenkripsi**, isi cookie dapat dibaca siapa saja.  
+- **Rentan pencurian (session hijacking)**, bisa dicuri melalui XSS atau sniffing koneksi non-HTTPS.  
+- **Cross-Site Request Forgery (CSRF)**, cookie dikirim otomatis pada setiap request ke domain terkait.  
+- **Penyimpanan data sensitif**, jika developer menyimpan password/data pribadi langsung di cookie.  
+
+### Bagaimana Django menangani risiko tersebut?
+
+Django menyediakan mekanisme bawaan untuk mengurangi risiko keamanan dari penggunaan cookies:
+
+1. **Session Server-Side**  
+  - Data sensitif tidak disimpan langsung di cookie.  
+  - Hanya **session ID** (`sessionid`) yang ada di cookie, sementara data lengkap disimpan di server (database, cache, atau file).  
+  - Dengan cara ini, isi data pengguna tidak dapat dibaca langsung dari sisi klien.  
+  - Contohnya: pemanggilan `login(request, user)` pada `login_user` otomatis membuat session server-side.
+
+2. **Konfigurasi Cookie Security**  
+  Django memiliki pengaturan khusus di `settings.py` untuk mengamankan cookies:
+  - `SESSION_COOKIE_SECURE`, cookie hanya dikirim melalui HTTPS.  
+  - `SESSION_COOKIE_HTTPONLY`, mencegah cookie diakses lewat JavaScript (mitigasi XSS).  
+  - `SESSION_COOKIE_SAMESITE`, membatasi pengiriman cookie lintas situs (melawan CSRF).   
+
+3. **Proteksi CSRF Bawaan**  
+  - Django otomatis menambahkan token CSRF di setiap form POST.  
+  - Token ini diverifikasi bersama cookie `csrftoken`, sehingga request tanpa token valid akan ditolak.  
+  - Contohnya: `{% csrf_token %}` pada `register.html` dan `login.html`.
+
+4. **Signed Cookies**  
+  - Untuk data yang perlu disimpan di sisi klien, Django menyediakan `set_signed_cookie()` dan `get_signed_cookie()`.  
+  - Nilai cookie ditandatangani secara kriptografis agar tidak bisa dimanipulasi tanpa terdeteksi.  *  
+
+5. **Decorator & Middleware**  
+  - `@login_required` memastikan halaman hanya dapat diakses oleh user yang sudah login (berdasarkan session cookie).  
+  - Middleware autentikasi & CSRF secara default aktif untuk memverifikasi request.  
+  - Contohnya: penggunaan `@login_required` pada `show_main` dan `show_news`.
 
 ## Implementasi Checklist
+
+1. **Membuat fungsi dan form registrasi**
+  - Menambahkan fungsi `register` di `views.py`:
+    - `UserCreationForm()` membuat form bawaan Django untuk pendaftaran user baru.
+    - Validasi input dan akan disimpan akun baru ke database dengan `form.save()`
+    - `return redirect('main:login')`, redirect ke halaman login.
+  - Membuat `register.html` dan render form dengan `{{ form.as_table }}` + `{% csrf_token %}`.
+  - Sambungkan route di `urls.py` dengan `path('register/', register, name='register')`.
+
+2. **Membuat fungsi login dan menyimpan cookie `last_login`**
+  - Menambahkan fungsi `login_user` di `views.py`:
+    - Menambahkan form autentikasi bawaan Django dengan `AuthenticationForm(data=request.POST)`.
+    - Jika form valid, mengambil objek user, memanggil `login(request, user)` yang akan membuat session server-side.
+    - Redirect dengan `response = HttpResponseRedirect(reverse("main:show_main"))` setelah login.
+    - Menyimpan waktu login terakhir ke cookie dengan `response.set_cookie('last_login', str(datetime.datetime.now()))`.
+    - Jika request method tidak POST, akan membuat `AuthenticationForm(request)` kosong agar ketika user buka halaman login, mereka langsung melihat form kosong. Form ini kemudian dikirim dan dirender ke `login.html`.
+  - Membuat template `login.html` dan merender form.
+  - Menyambungkan route di `urls.py` degan `path('login/', login_user, name='login')`.
+
+3. **Membuat fungsi logout dan menghapus cookie**
+  - Menambahkan fungsi `logout_user` di `views.py`:
+    - `logout(request)` akan menghapus session dari server & cookie `sessionid` di browser.
+    - Redirect ke login dengan `response = HttpResponseRedirect(reverse('main:login'))`
+    - Hapus cookie tambahan yang dibuat saat login dengan `response.delete_cookie('last_login')`.
+  - Menambahkan tombol logout di `main.html`.
+  - Menyambungkan route di `urls.py` dengan menambahkan `path('logout/', logout_user, name='logout')`.
+
+4. **Restriksi akses halaman**
+  - Di `views.py` menambahkan decorator `@login_required(login_url='/login')` di atas fungsi `show_main` dan `show_product` yang artinya, halaman hanya bisa dibuka jika user sudah login.
+
+5. **Menggunakan data dari cookies (`last_login`)**
+  - Di `views.py`:
+    - `login_user` akan set cookie `last_login`.
+    - `show_main` akan mengambil cookie dengan `'last_login': request.COOKIES.get('last_login', 'Never')` lalu mengirimnya ke template.
+  - Di template, akan ditampilkan informasi `last_login` yang dikirim dari `views.py`.
+
+6. **Menghubungkan model `Product` dengan `user`**
+  - Di class `Product` menambahkan atribut `user` yang mana diambil dari `models.ForeignKey(User, on_delete=models.CASCADE, null=True)`.
+  - Pada `views.py`:
+    - Di`add_product` akan mengisi field `user` dengan user yang sedang login.
+    - Di `show_main` menambahkan filter `?filter=all` untuk semua produk, `?filter=my` untuk produk milik user yang sedang login dan mengirim context tambahan `user: request.user`.
+  - Pada `main.html`: 
+    - Menampilkan user yang sedang login dan menampilkan author (pembuat) produk, anonymous jika `null`.
+    - Membuat tombol untuk filter All Products dan My Products.
+
+7. **Membuat dua akun user dengan masing-masing tiga dummy data**
+  - Mengaktifkan environment dengan `env/Scripts/activate`
+  - Runserver dengan `python manage.py runserver`
+  - Membuka localhost:
+     - Registrasi akun (buat dua akun),
+     - Login ke akun yang sudah dibuat,
+     - Menambahkan tiga produk di tiap akun yang sudah dibuat.
