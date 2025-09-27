@@ -2,26 +2,21 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>{% block title %}Title{% endblock title %}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <title>{% block title %}Kick Corner{% endblock title %}</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  {% block meta %}{% endblock meta %}
 
-    <!-- style dengan CSS -->
-    <style>
-        body { font-family: system-ui, Arial, sans-serif; margin: 24px; line-height: 1.5; }
-        ul { list-style: none; padding: 0; }
-        li { border: 1px solid #e5e7eb; border-radius: 10px; padding: 12px; margin-bottom: 12px; }
-        img { width: 100%; max-width: 320px; height: auto; border-radius: 8px; display: block; }
-        .meta { font-size: 12px; color: #555; }
-        .price { font-weight: 700; }
-    </style>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="{% static 'css/global.css' %}"/>
 
-    {% block extra_css %}{% endblock extra_css %}
-    {% block meta %}{% endblock meta %}
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="{% static 'css/global.css' %}"/>
+  <style>
+    img { display:block; max-width:100%; height:auto; }
+  </style>
+
+  {% block extra_css %}{% endblock extra_css %}
 </head>
-<body>
-    {% block content %}{% endblock content %}
+<body class="bg-gray-50 text-gray-900">
+  {% block content %}{% endblock content %}
 </body>
 </html>

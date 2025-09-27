@@ -1,0 +1,52 @@
+<article class="bg-white rounded-lg border border-gray-200 hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+  <div class="aspect-[16/9] relative overflow-hidden bg-gray-100">
+    {% if p.thumbnail %}
+      <img src="{{ p.thumbnail }}" alt="{{ p.name }}" class="w-full h-full object-cover">
+    {% endif %}
+
+    <div class="absolute top-3 left-3">
+      <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-900 text-white">
+        {{ p.get_category_display }}
+      </span>
+    </div>
+
+    <div class="absolute top-3 right-3 flex space-x-2">
+      {% if p.is_featured %}
+        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>
+      {% endif %}
+      {% if p.is_product_hot %}
+        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800">Hot</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <div class="p-5">
+    <div class="flex items-center text-sm text-gray-500 mb-3">
+      <time datetime="{{ p.created_at|date:'c' }}">{{ p.created_at|date:"M j, Y" }}</time>
+      <span class="mx-2">•</span>
+      <span>{{ p.product_views }} views</span>
+    </div>
+
+    <h3 class="text-lg font-semibold text-gray-900 mb-2 line-clamp-2 leading-tight">
+      <a href="{% url 'main:show_product' p.id %}" class="hover:text-gray-700 transition-colors">{{ p.name }}</a>
+    </h3>
+
+    <p class="text-gray-600 text-sm leading-relaxed mb-4">
+      {% if p.brand %}<span class="font-medium">{{ p.brand }}</span> · {% endif %}
+      Size {{ p.size }} · Stock {{ p.stock }}
+    </p>
+
+    <div class="flex items-center justify-between pt-4 border-t border-gray-100">
+      <span class="font-semibold text-gray-900">Rp {{ p.price }}</span>
+
+      <div class="flex items-center gap-3">
+        <a href="{% url 'main:show_product' p.id %}" class="text-gray-700 hover:text-gray-900 text-sm font-medium">View</a>
+
+        {% if request.user.is_authenticated and p.user_id == request.user.id %}
+          <a href="{% url 'main:edit_product' p.id %}" class="text-gray-600 hover:text-gray-800 text-sm">Edit</a>
+          <a href="{% url 'main:delete_product' p.id %}" class="text-red-600 hover:text-red-700 text-sm">Delete</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</article>

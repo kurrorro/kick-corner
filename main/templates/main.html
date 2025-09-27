@@ -1,75 +1,47 @@
 {% extends "base.html" %}
+{% load static %}
 {% block title %}Kick Corner – Products{% endblock title %}
-{% include 'navbar.html' %}
-{% block extra_css %}
-<style>
-  .actions { display:flex; gap:8px; margin:12px 0 16px; }
-  .btn { display:inline-block; padding:8px 12px; border-radius:8px; border:1px solid #e5e7eb; text-decoration:none; font-weight:600; }
-  .btn-primary { background:#111827; color:#fff; border-color:#111827; }
-  .btn-outline { background:#fff; color:#111827; }
-  .btn:hover { filter:brightness(0.96); }
-</style>
-{% endblock extra_css %}
 
 {% block content %}
-  <header>
-    <h1>{{ shop }}</h1>
-    <p>{{ npm }} — {{ name }} ({{ class }})</p>
-  </header>
+{% include 'navbar.html' %}
+<div class="w-full pt-16 min-h-screen bg-gray-50">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
-  <main>
-    <h2>Products</h2>
-
-    {# tombol add product #}
-    <div class="actions">
-        <a href="{% url 'main:add_product' %}" class="btn btn-primary">+ Add Product</a>
-        <a href="{% url 'main:logout' %}" class="btn btn-primary">Logout</a>
+    <!-- Header -->
+    <div class="mb-8">
+      <h1 class="text-3xl font-bold text-gray-900 mb-1">{{ shop }}</h1>
+      <p class="text-gray-900">Fuel Your Football Fever!</p>
     </div>
 
-    <h5>Username: {{ user.username }}</h5>
-    <h5>Sesi terakhir login: {{ last_login }}</h5>
-
-    <ul>
-
-      <div class="actions">
-        <a href="?filter=all" class="btn btn-primary">All Product</a>
-        <a href="?filter=my" class="btn btn-primary">My Product</a>
+    <!-- Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-8 bg-white rounded-lg border border-gray-200 p-4">
+      <div class="flex gap-3">
+        <a href="?filter=all" class="px-4 py-2 rounded-md font-medium transition-colors {% if request.GET.filter == 'all' or not request.GET.filter %} bg-gray-900 text-white {% else %} bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 {% endif %}">All Product</a>
+        <a href="?filter=my" class="px-4 py-2 rounded-md font-medium transition-colors {% if request.GET.filter == 'my' %} bg-gray-900 text-white {% else %} bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 {% endif %}">My Product</a>
       </div>
+      {% if user.is_authenticated %}
+        <div class="text-sm text-gray-500">Last login: {{ last_login }}</div>
+      {% endif %}
+    </div>
 
-      {% for p in products %}
-        <li>
-          <article>
-            {% if p.thumbnail %}
-              <img src="{{ p.thumbnail }}" alt="{{ p.name }} thumbnail" loading="lazy">
-            {% endif %}
+    <!-- Grid -->
+    {% if not products %}
+      <div class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+        <div class="w-28 h-28 mx-auto mb-4 rounded-md bg-white">
+          <img src="{% static 'image/no-news.png' %}" alt="No product available" class="w-full h-full object-contain">
+        </div>
+        <h3 class="text-lg font-medium text-gray-900 mb-2">No product found :O</h3>
+        <p class="text-gray-500 mb-6">Start by adding your first product.</p>
+        <a href="{% url 'main:add_product' %}" class="inline-flex items-center px-4 py-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md transition-colors">Add Product</a>
+      </div>
+    {% else %}
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {% for p in products %}
+          {% include 'card_product.html' with p=p %}
+        {% endfor %}
+      </div>
+    {% endif %}
 
-            <h3><a href="{% url 'main:show_product' p.id %}">{{ p.name }}</a></h3>
-
-            <p class="meta">
-              {{ p.get_category_display }}
-              {% if p.brand %} · {{ p.brand }}{% endif %}
-              {% if p.is_featured %} · Featured{% endif %}
-            </p>
-
-            <p class="price">Rp {{ p.price }}</p>
-
-            {# tombol view detail #}
-            <div class="actions">
-                <a href="{% url 'main:show_product' p.id %}" class="btn btn-outline">View details</a>
-                {% if user.is_authenticated and p.user == user %}
-                <a href="{% url 'main:edit_product' p.pk %}" class="btn btn-outline">Edit</a>
-                <a href="{% url 'main:delete_product' p.pk %}" class="btn btn-outline">Delete</a>
-                {% endif %}
-            </div>
-          </article>
-        </li>
-      {% empty %}
-        <li><p>There is no product yet.</p></li>
-      {% endfor %}
-    </ul>
-  </main>
-
-  <footer>
-    <small>© {{ name }}</small>
-  </footer>
+  </div>
+</div>
 {% endblock content %}
