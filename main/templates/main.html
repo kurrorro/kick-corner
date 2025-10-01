@@ -20,7 +20,7 @@
         <a href="?filter=my" class="px-4 py-2 rounded-md font-medium transition-colors {% if request.GET.filter == 'my' %} bg-gray-900 text-white {% else %} bg-white text-gray-700 border border-gray-300 hover:bg-gray-50 {% endif %}">My Product</a>
       </div>
       {% if user.is_authenticated %}
-        <div class="text-sm text-gray-500">Last login: {{ last_login }}</div>
+        <div class="text-sm text-gray-500 mt-3 sm:mt-0">Last login: {{ last_login }}</div>
       {% endif %}
     </div>
 

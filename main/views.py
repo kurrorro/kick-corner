@@ -17,6 +17,8 @@ def show_main(request):
 
     if filter_type == "all":
         products = Product.objects.all()
+    elif filter_type == "featured":
+        products = Product.objects.filter(is_featured=True)
     else:
         products = Product.objects.filter(user=request.user)
         

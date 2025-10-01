@@ -10,7 +10,8 @@ Dibuat untuk tugas mata kuliah **PBP**.
 - **Nama**: Keisha Vania Laurent  
 - **Kelas**: PBP B  
 
-# Tugas Individu 2
+<details>
+<summary><strong>Tugas Individu 2</strong></summary>
 
 ## Implementasi checklist
 
@@ -141,8 +142,10 @@ Dokumentasi yang lengkap, komunitas yang besar, serta penggunaannya yang luas di
 ## Apakah ada feedback untuk asisten dosen tutorial 1?
 
 Tidak ada.
+</details>
 
-# Tugas Individu 3
+<details>
+<summary><strong>Tugas Individu 3</strong></summary>
 
 ## Mengapa perlu data delivery dalam pengimplementasian sebuah platform? 
 
@@ -295,7 +298,10 @@ Tidak ada.
 ### http://localhost:8000/json/c24ef3ae-6cf3-4a1d-9178-c0da771a46f4
 ![JSON with ID](assets/json-id.png)
 
-# Tugas Individu 4
+</details>
+
+<details>
+<summary><strong>Tugas Individu 4</strong></summary>
 
 ## Apa itu Django AuthenticationForm? Bagaimana kelebihan dan kekurangannya?
 
@@ -464,3 +470,199 @@ Django menyediakan mekanisme bawaan untuk mengurangi risiko keamanan dari penggu
      - Registrasi akun (buat dua akun),
      - Login ke akun yang sudah dibuat,
      - Menambahkan tiga produk di tiap akun yang sudah dibuat.
+</details>
+
+<details>
+<summary><strong>Tugas Individu 5</strong></summary>
+
+## Urutan prioritas pengambilan CSS selector
+
+Ketika beberapa aturan CSS berlaku pada elemen yang sama, yang dipakai adalah aturan dengan **specificity tertinggi**. Urutannya dari yang paling kuat ke yang paling lemah:
+
+1. Inline style
+2. ID selector (`#id`)
+3. Class, attribute selector, pseudo-class
+4. Element selector & pseudo-element
+5. Universal selector (`*`) dan `:where()`
+
+### Contohnya
+```css
+p { color: red; } /* element */
+.test { color: green; } /* class */
+#demo { color: blue; } /* id */
+```
+
+```html
+<p id="demo" class="test" style="color: pink;">Hello World!</p>
+```
+
+### Hasil:
+- `p`: merah  
+- `.test`: hijau  
+- `#demo`: biru  
+- `style="color: pink;"`: **pink (menang, inline style)**  
+
+---
+
+Specificity dihitung dengan format `a-b-c`:
+- `a` = jumlah **ID**
+- `b` = jumlah **class/attribute/pseudo-class**
+- `c` = jumlah **element/pseudo-element**
+
+| Selector                              | Contoh                   | Bobot (`a-b-c`) | Keterangan                      |
+|---------------------------------------|--------------------------|-----------------|---------------------------------|
+| Inline style                      | `<h1 style="color:pink">`| –               | Paling kuat, override semua      |
+| ID selector                       | `#demo {}`               | 1-0-0         | Kedua terkuat                   |
+| Class / Attribute / Pseudo-classm| `.test {}`, `[type="text"]`, `:hover` | 0-1-0 | Lebih kuat dari element biasa   |
+| Element / Pseudo-element | `p {}`, `h1 {}`, `::after` | 0-0-1       | Lebih lemah dari class & id     |
+| Universal / :where()              | `* {}`, `:where(div)`    | 0-0-0         | Paling lemah, hampir tak berpengaruh |
+
+## Mengapa responsive design menjadi konsep yang penting dalam pengembangan aplikasi web? Berikan contoh aplikasi yang sudah dan belum menerapkan responsive design, serta jelaskan mengapa!
+
+Responsive design adalah pendekatan desain web yang membuat tampilan website menyesuaikan otomatis dengan berbagai ukuran layar (desktop, tablet, smartphone). Tujuannya agar pengguna tetap nyaman mengakses kontent tanpa harus zoom in/zoom out atau scroll ke samping.
+
+### Mengapa penting?
+- **Penggunaan mobile meningkat**: mayoritas orang mengakses web lewat HP, jadi aplikasi harus tetap nyaman dipakai di layar kecil.
+- **User experience (UX) lebih baik**: navigasi lebih mudah, teks terbaca jelas, tombol tidak terlalu kecil.
+- **SEO (Search Engine Optimization)**: Google memberi peringkat lebih tinggi pada website yang mobile-friendly.
+- **Efisiensi pengembangan**: satu desain bisa dipakai di berbagai device, tidak perlu bikin versi terpisah untuk desktop dan mobile.
+
+### Contoh:
+- Aplikasi yang **sudah** menerapkan responsive design:
+  - [YouTube](https://youtube.com): saat dibuka di HP, layout berubah (sidebar disembunyikan jadi menu hamburger, video otomatis menyesuaikan lebar layar).
+  - [Tokopedia](https://tokopedia.com): grid produk berubah sesuai ukuran layar, tombol beli tetap mudah dijangkau di mobile.
+- Aplikasi yang belum menerapkan responsive design:
+  - [Non-responsive web](https://dequeuniversity.com/library/responsive/1-non-responsive): layout menggunakan fixed width, sehingga tampilannya tidak menyesuaikan saat dibuka di layar kecil (misalnya smartphone):
+    - Lebar halaman dikunci tetap
+      ```css
+      #container { width:1000px; margin:auto; }
+      ```
+      Kontainer utama web selalu berukuran 1000 piksel, tidak peduli ukuran layar. Kalau layar lebih kecil (misalnya 400–600 px), tampilannya akan terpotong dan tidak otomatis mengecil.
+    - Tidak ada aturan untuk layar kecil
+      ```css
+      @media (max-width: 768px) {
+        /* atur ulang tampilan untuk layar kecil */
+      }
+      ```
+      Tidak ada satu pun `media query`. Jadi saat layar diperkecil, tampilan tidak berubah sama sekali, tetap dua kolom dan tetap selebar 1000 px.
+
+## Perbedaan antara margin, border, dan padding, serta cara untuk mengimplementasikan ketiga hal tersebut
+
+Dalam CSS, setiap elemen HTML diperlakukan sebagai sebuah **kotak (box)**.
+
+### Content
+- Bagian inti dari elemen, tempat teks atau gambar ditampilkan.  
+- Lebar (`width`) dan tinggi (`height`) yang kita atur di CSS sebenarnya hanya berlaku untuk content area.  
+
+### Padding
+- Ruang kosong di dalam border, mengelilingi konten.  
+- Transparan (tidak terlihat), tapi memberi jarak antara konten dengan border.  
+- Menambah ukuran total elemen.  
+
+Contoh:
+```css
+div {
+  /* Memberi jarak 20px antara teks/gambar dengan border */
+  padding: 20px;
+}
+```
+
+### Border
+- Garis yang mengelilingi padding + content.  
+- Bisa diatur ketebalan, gaya (solid, dashed, dotted), dan warnanya.  
+- Menambah ukuran total elemen.  
+
+Contoh:
+```css
+div {
+  /* Membuat border hijau setebal 5px */
+  border: 5px solid green;
+}
+```
+### Margin
+- Ruang kosong di luar border, memberi jarak antara elemen ini dengan elemen lain.  
+- Transparan (tidak terlihat).  
+- Tidak menambah ukuran box, tapi menambah jarak antar elemen.  
+
+Contoh:
+```css
+div {
+  /* Memberi jarak 30px dari elemen lain di sekitarnya */
+  margin: 30px;
+}
+```
+---
+### Ilustrasi box model
+Dari dalam ke luar:  
+**Content -> Padding -> Border -> Margin**  
+
+Contoh:
+```css
+div {
+  width: 300px; /* content width */
+  border: 15px solid green; /* border */
+  padding: 50px; /* padding */
+  margin: 20px; /* margin */
+}
+```
+Total lebar elemen:
+```
+= width + padding kiri/kanan + border kiri/kanan
+= 300px + 100px + 30px
+= 430px
+```
+Total tinggi elemen juga dihitung dengan rumus yang sama (height + padding atas/bawah + border atas/bawah).
+
+## Konsep flex box dan grid layout beserta kegunaannya
+
+### CSS Flexbox
+Metode layout satu dimensi (baris atau kolom) yang memudahkan pengaturan posisi dan jarak antar elemen secara fleksibel dan responsif.
+
+Kegunaan:
+- Menyusun elemen secara horizontal atau vertikal  
+- Membuat layout responsif dengan mudah  
+- Mengatur perataan elemen dalam satu baris/kolom
+
+Contoh:
+```html
+<div class="flex-container">
+  <div>1</div>
+  <div>2</div>
+  <div>3</div>
+</div>
+
+<style>
+.flex-container {
+  display: flex;
+}
+</style>
+```
+
+### CSS Grid Layout
+Metode layout dua dimensi (baris dan kolom) yang memudahkan membuat struktur halaman yang rapi.
+
+Kegunaan:
+- Menyusun elemen dalam baris dan kolom
+- Cocok untuk layout halaman utama (header, sidebar, konten)
+- Memudahkan desain responsif
+
+Contoh:
+```html
+<div class="container">
+  <div>1</div>
+  <div>2</div>
+  <div>3</div>
+  <div>4</div>
+  <div>5</div>
+  <div>6</div>
+  <div>7</div>
+  <div>8</div>
+</div>
+
+<style>
+.container {
+  display: grid;
+}
+</style>
+```
+## Implementasi Checklist
