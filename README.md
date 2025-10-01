@@ -666,3 +666,45 @@ Contoh:
 </style>
 ```
 ## Implementasi Checklist
+
+1. **Implementasikan Fungsi untuk Menghapus dan Mengedit Produk**
+- Menambahkan fungsi`edit_product()`:
+  - Mengambil objek produk berdasarkan `id` menggunakan `get_object_or_404`
+  - Menggunakan `ProductForm` untuk menampilkan dan memvalidasi form edit
+  - Jika form valid, produk diperbarui dan pengguna diarahkan ke halaman utama
+
+- Menambahkan fungsi `delete_product()`:
+  - Mengambil produk berdasarkan `id` dan menghapusnya dengan `.delete()`.
+  - Setelah penghapusan, pengguna diarahkan kembali ke halaman utama.
+
+2. **Kustomisasi Desain pada Template HTML dengan CSS Tailwind**
+#### Halaman Login, Register, Tambah Produk, Edit Produk, dan Detail Produk:
+- Login dan register:
+  - Menggunakan Tailwind untuk mempercantik form login dan register dengan tombol yang responsif.
+  - Setiap form memiliki padding, margin, dan styling yang menarik dengan `rounded`, `bg-gray-200`, dan hover effects.
+  
+- Tambah produk & edit Produk:
+  - Form untuk menambah dan mengedit produk dikustomisasi dengan Tailwind untuk membuatnya lebih rapi dan responsif.
+  - Penggunaan `input`, `textarea`, dan `button` dengan styling Tailwind memastikan tampilan yang konsisten dan modern.
+
+- Detail produk:
+  - Menampilkan detail produk berisi gambar produk, harga, informasi-informasi lainnya yang dimiliki produk, serta terdapat tombol `refresh`, `edit`, dan `delete` (jika itu produk milik pengguna).
+
+#### Halaman Daftar Produk:
+- Tampilkan "No product Found" jika tidak ada produk:
+  - Menampilkan pesan "No product found :O" dan gambar default jika tidak ada produk di database.
+  
+- Menampilkan Detail Produk dengan Card jika Ada Produk:
+  - Jika produk tersedia, tampilkan dalam **card** yang mencakup informasi seperti nama produk, gambar, harga, dan tombol aksi untuk edit dan hapus.
+  - Setiap produk akan memiliki tampilan konsisten dengan menggunakan `flex`, `bg-white`, `shadow-lg`, dan `hover` efek pada card.
+
+#### Tombol Edit dan Hapus di Setiap Card Produk:
+- Button Edit dan Hapus:
+  - Setiap card produk dilengkapi dengan tombol `Edit` dan `Hapus` yang hanya ditampilkan jika pengguna yang login adalah pemilik produk.
+  - Tombol ini mengarahkan pengguna ke halaman edit produk atau menghapus produk langsung.
+
+#### Navbar (Navigasi):
+- Tampilan desktop dan mobile responsif:
+  - Navbar menggunakan Tailwind CSS untuk membuat tampilan responsif.
+  - Di **desktop**, navbar menampilkan link seperti `Home`, `Add Product`, dan `Featured`.
+  - Di **mobile**, navbar berubah menjadi menu dropdown yang dapat dipanggil dengan tombol menu hamburger.
