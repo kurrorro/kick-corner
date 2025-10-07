@@ -10,7 +10,7 @@
       <!-- Desktop navigation -->
       <div class="hidden md:flex items-center space-x-8">
         <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Home</a>
-        <a href="{% url 'main:add_product' %}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Add Product</a>
+        <button onclick="showModal()" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Add Product</button>
         <a href="{% url 'main:show_main' %}?filter=featured" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Featured</a>
       </div>
 
