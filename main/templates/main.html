@@ -259,7 +259,7 @@ function renderAllProductCards(productItems) {
 function filterAndDisplayProducts() {
   updateFilterButtonsAppearance();
   
-let filteredProducts; // Deklarasikan di awal
+let filteredProducts;
 
   if (activeFilter === 'all') {
     filteredProducts = allProductsData;
@@ -344,7 +344,6 @@ document.addEventListener('productAdded', function() {
     fetchProductsFromServer();
 });
 
-// Menangani klik tombol Edit untuk menampilkan modal edit
 productsGridContainer.addEventListener('click', async function(e) {
     const target = e.target;
 
@@ -358,36 +357,12 @@ productsGridContainer.addEventListener('click', async function(e) {
 
         showEditModal(productId); 
     }
-
+    
     if (target && target.classList.contains('delete-btn')) {
         const productId = target.dataset.id; 
-
-        if (confirm('Are you sure you want to delete this product?')) {
-            try {
-                const csrftoken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-
-                const response = await fetch(`/delete-product-ajax/${productId}/`, {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken, 
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    showToast('Success', 'Product deleted.', 'success');
-                    fetchProductsFromServer(); 
-                } else {
-                    const data = await response.json();
-                    showToast('Error', data.message || 'Failed to delete.', 'error');
-                }
-            } catch (error) {
-                showToast('Error', 'Network error.', 'error');
-            }
-        }
+        showDeleteModal(productId);
     }
 });
-
 </script>
 
 {% endblock content %}

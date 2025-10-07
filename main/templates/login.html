@@ -39,35 +39,35 @@
 
 <script>
 document.getElementById("login-form").addEventListener("submit", async function(e) {
-    e.preventDefault();
+  e.preventDefault();
 
-    const form = e.target;
-    const formData = new FormData(form);
-    const errorContainer = document.getElementById("error-message-container");
-    const errorBox = document.getElementById("error-message-box");
+  const form = e.target;
+  const formData = new FormData(form);
+  const errorContainer = document.getElementById("error-message-container");
+  const errorBox = document.getElementById("error-message-box");
 
-    try {
-        const response = await fetch("{% url 'main:login_ajax' %}", {
-            method: "POST",
-            body: formData,
-        });
+  try {
+      const response = await fetch("{% url 'main:login_ajax' %}", {
+          method: "POST",
+          body: formData,
+      });
 
-        const data = await response.json();
+      const data = await response.json();
 
-        if (response.ok) { 
-            showToast('Login successful!', '', 'success')
-            setTimeout(() => {
-                 window.location.href = data.redirect_url;
-            }, 500);
-        } else {
-            errorBox.textContent = data.message;
-            errorContainer.classList.remove("hidden");
-        }
-    } catch (error) {
-        console.error("An error occurred:", error);
-        errorBox.textContent = "An unexpected error occurred. Please try again later.";
-        errorContainer.classList.remove("hidden");
-    }
+      if (response.ok) { 
+          showToast('Login successful!', '', 'success')
+          setTimeout(() => {
+                window.location.href = data.redirect_url;
+          }, 500);
+      } else {
+          errorBox.textContent = data.message;
+          errorContainer.classList.remove("hidden");
+      }
+  } catch (error) {
+      console.error("An error occurred:", error);
+      errorBox.textContent = "An unexpected error occurred. Please try again later.";
+      errorContainer.classList.remove("hidden");
+  }
 });
 </script>
 {% endblock content %}
