@@ -47,7 +47,7 @@
     <div class="px-6 py-4 space-y-4">
       <div class="space-y-1">
         <a href="{% url 'main:show_main' %}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">Home</a>
-        <a href="{% url 'main:add_product' %}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">Add Product</a>
+        <button onclick="showModal()" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors w-full text-left">Add Product</button>
         <a href="{% url 'main:show_main' %}?filter=featured" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">Featured</a>
       </div>
 
