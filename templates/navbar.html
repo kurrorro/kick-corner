@@ -21,7 +21,7 @@
             <div class="text-sm font-medium text-gray-900">{{ user.username }}</div>
             <div class="text-xs text-gray-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
           </div>
-          <a href="{% url 'main:logout' %}" class="font-medium transition-colors text-[#b02a29] hover:text-[#b02a29]">Logout</a>
+          <button id="logout-button" class="font-medium transition-colors text-[#b02a29] hover:text-[#b02a29]">Logout</button>
         {% else %}
           <a href="{% url 'main:login' %}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">Login</a>
           <a href="{% url 'main:register' %}" class="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded font-medium transition-colors">Register</a>
@@ -57,7 +57,7 @@
             <div class="font-medium text-gray-900">{{ user.username }}</div>
             <div class="text-sm text-gray-500">{{ npm|default:"Student" }} - {{ class|default:"Class" }}</div>
           </div>
-          <a href="{% url 'main:logout' %}" class="block text-[#b02a29] hover:text-[#b02a29] font-medium py-3 transition-colors">Logout</a>
+          <button id="logout-button-mobile" class="block text-[#b02a29] hover:text-[#b02a29] font-medium py-3 transition-colors text-left w-full">Logout</button>
         {% else %}
           <div class="space-y-3">
             <a href="{% url 'main:login' %}" class="block text-gray-600 hover:text-gray-900 font-medium py-3 transition-colors">Login</a>

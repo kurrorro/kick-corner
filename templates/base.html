@@ -17,6 +17,69 @@
   {% block extra_css %}{% endblock extra_css %}
 </head>
 <body class="bg-gray-50 text-gray-900">
-  {% block content %}{% endblock content %}
+  {% block content %}
+
+  {% endblock %}
+
+  {% include 'toast.html' %}
+  {% include 'modal.html' %}
+  
+  <script>
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let i = 0; i < cookies.length; i++) {
+                let cookie = cookies[i].trim();
+                if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
+    async function handleLogout(e) {
+        e.preventDefault();
+
+        try {
+            const response = await fetch("{% url 'main:logout_ajax' %}", {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": getCookie('csrftoken')
+                }
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.status === "success") {
+                showToast('See you!', data.message, 'success', 1500); 
+
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 500);
+
+            } else {
+                showToast('Logout Failed', data.message || 'There is mistake.', 'error', 3000);
+            }
+        } catch (error) {
+            console.error("Logout Error:", error);
+            showToast('Error', 'Server error.', 'error', 3000);
+        }
+    }
+
+    document.addEventListener('DOMContentLoaded', function() {
+        const desktopBtn = document.getElementById('logout-button');
+        const mobileBtn = document.getElementById('logout-button-mobile');
+
+        if (desktopBtn) {
+            desktopBtn.addEventListener('click', handleLogout);
+        }
+        if (mobileBtn) {
+            mobileBtn.addEventListener('click', handleLogout);
+        }
+    });
+</script>
 </body>
 </html>

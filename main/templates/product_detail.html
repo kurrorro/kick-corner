@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
-{% block title %}{{ product.name }}{% endblock title %}
+{% load static %}
+{% block title %}Product Detail{% endblock title %}
 
 {% block content %}
 {% include 'navbar.html' %}
@@ -8,56 +9,181 @@
 
     <a href="{% url 'main:show_main' %}" class="inline-flex items-center text-gray-600 hover:text-gray-900 font-medium mb-6">← Back to Products</a>
 
-    <article class="bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div id="loading-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center">
+      <svg class="animate-spin h-8 w-8 text-gray-900 inline-block" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+      </svg>
+      <p class="text-gray-600 mt-3 font-medium">Loading product details...</p>
+    </div>
+
+    <div id="error-state" class="bg-white rounded-lg border border-gray-200 p-12 text-center hidden">
+      <div class="w-16 h-16 mx-auto mb-4 text-red-500 text-5xl">⚠️</div>
+      <h3 class="text-lg font-medium text-gray-900 mb-2">Failed to load product details</h3>
+      <p class="text-gray-500">The product might not exist or there was a server error. Please try again later.</p>
+    </div>
+
+    <article id="product-content" class="bg-white rounded-lg border border-gray-200 overflow-hidden hidden">
       <div class="p-6 sm:p-8">
-        <div class="flex flex-wrap items-center gap-2 mb-4">
-          <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-900 text-white">{{ product.get_category_display }}</span>
-          {% if product.is_featured %}
-            <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>
-          {% endif %}
-          {% if product.is_product_hot %}
-            <span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800">Hot</span>
-          {% endif %}
-        </div>
+        <div id="product-badges-container" class="flex flex-wrap items-center gap-2 mb-4">
+          </div>
 
-        <h1 class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-3">{{ product.name }}</h1>
+        <h1 id="product-name" class="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight mb-3"></h1>
 
-        <div class="flex flex-wrap items-center text-sm text-gray-500 gap-4">
-          <time datetime="{{ product.created_at|date:'c' }}">{{ product.created_at|date:"M j, Y g:i A" }}</time>
-          <span>{{ product.product_views }} views</span>
-          {% if product.brand %}<span>Brand: {{ product.brand }}</span>{% endif %}
-          <span>Size: {{ product.size }}</span>
-          <span>Stock: {{ product.stock }}</span>
+        <div class="flex flex-wrap items-center text-sm text-gray-500 gap-x-4 gap-y-1">
+          <time id="product-created-at"></time>
+          <span id="product-views"></span>
+          <span id="product-brand"></span>
+          <span id="product-size"></span>
+          <span id="product-stock"></span>
         </div>
       </div>
 
-      {% if product.thumbnail %}
-        <div class="px-6 sm:px-8">
-          <img src="{{ product.thumbnail }}" alt="{{ product.name }}" class="w-full h-72 sm:h-96 object-cover rounded-lg">
-        </div>
-      {% endif %}
+      <div id="product-image-container" class="px-6 sm:px-8 hidden">
+        <img id="product-thumbnail" src="" alt="" class="w-full h-72 sm:h-96 object-cover rounded-lg">
+      </div>
 
       <div class="p-6 sm:p-8">
-        <div class="text-2xl font-bold text-gray-900 mb-3">Rp {{ product.price }}</div>
-        <p class="text-gray-700 leading-relaxed whitespace-pre-line">{{ product.description }}</p>
+        <div id="product-price" class="text-2xl font-bold text-gray-900 mb-3"></div>
+        <p id="product-description" class="text-gray-700 leading-relaxed whitespace-pre-line"></p>
       </div>
 
       <div class="border-t border-gray-200 p-6 sm:p-8 bg-gray-50">
         <div class="flex items-center justify-between">
-          <div class="text-sm text-gray-700">
-            {% if product.user %}Author: {{ product.user.username }}{% else %}Author: Anonymous{% endif %}
-          </div>
-          <div class="flex gap-3">
-            <a href="{% url 'main:show_product' product.id %}" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">Refresh</a>
-            {% if request.user.is_authenticated and product.user_id == request.user.id %}
-              <a href="{% url 'main:edit_product' product.id %}" class="px-4 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Edit</a>
-              <a href="{% url 'main:delete_product' product.id %}" class="px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50">Delete</a>
-            {% endif %}
-          </div>
+          <div id="product-author" class="text-sm text-gray-700"></div>
+          <div id="action-buttons-container" class="flex gap-3">
+            </div>
         </div>
       </div>
     </article>
 
   </div>
 </div>
+
+<script>
+// Configuration
+const PRODUCT_ID = "{{ product.id }}";
+const CURRENT_USER_ID = "{{ request.user.id|default_if_none:'' }}";
+const PRODUCT_DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
+
+// DOM Elements
+const loadingState = document.getElementById('loading-state');
+const errorState = document.getElementById('error-state');
+const productContent = document.getElementById('product-content');
+
+// Content Placeholders
+const productBadgesContainer = document.getElementById('product-badges-container');
+const productName = document.getElementById('product-name');
+const productCreatedAt = document.getElementById('product-created-at');
+const productViews = document.getElementById('product-views');
+const productBrand = document.getElementById('product-brand');
+const productSize = document.getElementById('product-size');
+const productStock = document.getElementById('product-stock');
+const productImageContainer = document.getElementById('product-image-container');
+const productThumbnail = document.getElementById('product-thumbnail');
+const productPrice = document.getElementById('product-price');
+const productDescription = document.getElementById('product-description');
+const productAuthor = document.getElementById('product-author');
+const actionButtonsContainer = document.getElementById('action-buttons-container');
+
+// Show/hide page sections
+function showState(state) {
+    loadingState.classList.toggle('hidden', state !== 'loading');
+    errorState.classList.toggle('hidden', state !== 'error');
+    productContent.classList.toggle('hidden', state !== 'ready');
+}
+
+// Function to get readable category name
+function getCategoryLabel(categoryCode) {
+    const categoryMapping = {
+        jersey: 'Jersey', shoes: 'Shoes', ball: 'Ball', accessory: 'Accessory',
+        training: 'Training Equipment', nutrition: 'Sports Nutrition', merchandise: 'Merchandise',
+    };
+    return categoryMapping[categoryCode] || categoryCode;
+}
+
+// Render product content into the DOM
+function renderProduct(product) {
+    document.title = product.name;
+    productName.textContent = product.name;
+
+    productBadgesContainer.innerHTML = '';
+    const categoryBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-900 text-white">${getCategoryLabel(product.category)}</span>`;
+    productBadgesContainer.insertAdjacentHTML('beforeend', categoryBadge);
+
+    if (product.is_featured) {
+        const featuredBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>`;
+        productBadgesContainer.insertAdjacentHTML('beforeend', featuredBadge);
+    }
+
+    if (product.product_views > 20) {
+        const hotBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800">Hot</span>`;
+        productBadgesContainer.insertAdjacentHTML('beforeend', hotBadge);
+    }
+
+    const formattedDate = new Date(product.created_at).toLocaleString('en-GB', {
+      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    });
+    productCreatedAt.textContent = formattedDate;
+    productViews.textContent = `${product.product_views} views`;
+    productBrand.textContent = product.brand ? `Brand: ${product.brand}` : '';
+    productSize.textContent = `Size: ${product.size}`;
+    productStock.textContent = `Stock: ${product.stock}`;
+
+    if (product.thumbnail) {
+        productThumbnail.src = product.thumbnail;
+        productThumbnail.alt = product.name;
+        productImageContainer.classList.remove('hidden');
+    }
+
+    productPrice.textContent = `Rp ${product.price.toLocaleString('id-ID')}`;
+    productDescription.textContent = product.description;
+    productAuthor.textContent = product.user_username ? `Author: ${product.user_username}` : 'Author: Anonymous';
+    actionButtonsContainer.innerHTML = '';
+    const refreshLink = `<a href="${window.location.href}" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">Refresh</a>`;
+    actionButtonsContainer.insertAdjacentHTML('beforeend', refreshLink);
+
+    if (CURRENT_USER_ID && Number(product.user) === Number(CURRENT_USER_ID)) {
+      const editUrl = `{% url 'main:edit_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
+      const deleteUrl = `{% url 'main:delete_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
+      
+      const editButton = `<a href="${editUrl}" class="px-4 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Edit</a>`;
+      const deleteButton = `<a href="${deleteUrl}" class="px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50">Delete</a>`;
+
+      actionButtonsContainer.insertAdjacentHTML('beforeend', editButton);
+      actionButtonsContainer.insertAdjacentHTML('beforeend', deleteButton);
+    }
+}
+
+// Fetch product detail from the server
+async function loadProductDetail() {
+    try {
+        showState('loading');
+        
+        const response = await fetch(PRODUCT_DETAIL_ENDPOINT);
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const productData = await response.json();
+        const product = Array.isArray(productData) && productData.length > 0 ? productData[0].fields : productData;
+        
+        if (Array.isArray(productData) && productData.length > 0) {
+            product.id = productData[0].pk;
+        }
+
+        renderProduct(product);
+        showState('ready');
+
+    } catch (error) {
+        console.error('Error loading product detail:', error);
+        showState('error');
+    }
+}
+
+// Initialize the page load
+loadProductDetail();
+</script>
+
 {% endblock content %}
