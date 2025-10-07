@@ -712,36 +712,46 @@ Contoh:
 
 <details>
 <summary><strong>Tugas Individu 6</strong></summary>
-Kalian akan diharuskan merubah semua (yang ada di checklist) untuk menggunakan AJAX.
 
- Mengubah fitur - fitur tugas sebelumnya menggunakan AJAX
+## Perbedaan antara synchronous request dan asynchronous request?
+| Fitur | Synchronous Request (Sinkron) | Asynchronous Request (Asinkron/AJAX) |
+| :--- | :--- | :--- |
+| **Definisi** | Permintaan yang dieksekusi **secara berurutan**. Permintaan berikutnya hanya akan dimulai setelah permintaan sebelumnya selesai. | Permintaan yang dikirimkan **di latar belakang** (non-blocking). *Browser* dapat melanjutkan eksekusi kode lain tanpa menunggu respons. |
+| **Pemuatan Halaman** | Memicu **full page reload** (pemuatan ulang seluruh halaman) pada setiap permintaan. | Hanya memperbarui sebagian kecil *Document Object Model* (DOM) tanpa *reload* halaman. |
+| **Pemblokiran** | **Memblokir** (*Blocking*). *Main thread* (*User Interface*) akan dibekukan hingga respons dari *server* diterima. | **Tidak Memblokir** (*Non-blocking*). UI tetap responsif dan dapat diinteraksi. |
+| **Contoh** | Pengiriman *form* HTML tradisional atau navigasi tautan biasa. | Fitur *live search*, *like/unlike* tanpa *reload*, atau *refresh* konten parsial. |
 
- Fitur CRUD (Create Read Update Delete) product menggunakan AJAX (tidak boleh menggunakan dari context render kecuali untuk keperluan AJAX)
- Mengubah Login dan Register menggunakan AJAX.
- Tampilan baru
+## Bagaimana AJAX bekerja di Django (alur request–response)?
+AJAX memungkinkan pertukaran data antara *browser* dan *server* Django tanpa mengganggu tampilan halaman saat ini.
 
- Membuat tombol yang akan menampilkan modal untuk create dan update product dalam bentuk form.
- 
- Membuat modal konfirmasi saat pengguna ingin menghapus product
- Saat melakukan aksi dari modal, product akan di-refresh tanpa perlu melakukan reload halaman (Refresh melalui browser).
- 
- Membuat tombol refresh yang akan menampilkan list product terbaru tanpa perlu reload halaman (Refresh melalui browser)
- 
- Membuat Loading, Empty, dan Error state melalui Javascript.
- 
- Menampilkan Toast saat create, update, atau delete product dan saat login, logout, dan register (tidak boleh sama persis dengan tutorial).
- 
- Menjawab beberapa pertanyaan berikut pada README.md pada root folder (silakan modifikasi README.md yang telah kamu buat sebelumnya; tambahkan subjudul untuk setiap tugas).
+1.  **Client Event:** Aksi pengguna (misalnya, klik tombol) memicu JavaScript.
+2.  **AJAX Call:** JavaScript (menggunakan objek **`XMLHttpRequest`** atau **`fetch` API**) mengirimkan permintaan HTTP (POST, GET, dll.) ke URL tertentu di *server* Django.
+3.  **Django Routing:** Django URL *router* memetakan URL yang diminta ke fungsi *view* yang sesuai.
+4.  **View Processing:** Fungsi *view* Django memproses permintaan (misalnya, mengakses *database* atau memvalidasi data). Karena ini adalah permintaan AJAX, *view* **tidak** merender *template* HTML.
+5.  **JSON Response:** *View* membuat respons berupa objek **`JsonResponse`** yang berisi data terstruktur (JSON) dan mengembalikannya ke *client*.
+6.  **Client Handling:** JavaScript menerima data JSON.
+7.  **DOM Manipulation:** JavaScript memproses data JSON tersebut dan secara dinamis memperbarui elemen HTML yang relevan di halaman (*client-side rendering*).
 
- Apa perbedaan antara synchronous request dan asynchronous request?
- Bagaimana AJAX bekerja di Django (alur request–response)?
- 
- Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
- 
- Bagaimana cara memastikan keamanan saat menggunakan AJAX untuk fitur 
- 
- Login dan Register di Django?
- Bagaimana AJAX mempengaruhi pengalaman pengguna (User Experience) pada website?
- 
- Melakukan add-commit-push ke GitHub.
+## Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
+Penggunaan AJAX secara signifikan meningkatkan efisiensi dan pengalaman pengguna:
+
+- **Kecepatan dan Kinerja**: Hanya data yang dibutuhkan (biasanya JSON) yang dikirimkan, bukan seluruh *template* HTML, sehingga mengurangi *latency* dan waktu pemuatan.
+- **Efisiensi *Bandwidth***: Menghemat penggunaan *bandwidth* karena tidak perlu mentransfer ulang *asset* statis (CSS, JS, Gambar) dan *markup* HTML yang tidak berubah.
+- **Peningkatan Pengalaman Pengguna (UX)**: Menyediakan *feedback* instan, menjaga *user interface* tetap interaktif, dan memungkinkan tampilan seperti aplikasi (*app-like* experience) tanpa gangguan *full page reload*.
+- **Pemisahan Kekhawatiran (*Separation of Concerns*)**: Mempromosikan pemisahan antara lapisan data (*view* Django menghasilkan JSON) dan lapisan presentasi (*JavaScript* memanipulasi DOM).
+
+## Bagaimana cara memastikan keamanan saat menggunakan AJAX untuk fitur Login dan Register di Django?
+Mekanisme utama yang harus diterapkan saat menggunakan AJAX di Django meliputi:
+
+- **CSRF Protection (Cross-Site Request Forgery)**: Untuk semua permintaan yang mengubah *state* (*state-changing requests*) seperti POST, PUT, DELETE, *token* CSRF wajib disertakan. Django memfasilitasi ini dengan mengharuskan *client* mengirimkan *token* melalui *header* `X-CSRFToken` pada permintaan AJAX.
+- **Validasi Sisi Server**: Jangan pernah mengandalkan validasi di sisi *client*. Semua data *login* dan *register* yang dikirim melalui AJAX harus divalidasi, dibersihkan, dan diautentikasi secara ketat di *view* Django (*server-side*).
+- **Penggunaan HTTPS**: Mengimplementasikan `HTTPS` adalah keharusan untuk mengenkripsi data sensitif (termasuk *password* dan *session token*) yang dikirimkan melalui permintaan AJAX.
+- **Pengamanan Sesi**: Setelah *login* AJAX berhasil, *server* harus membuat dan mengelola sesi (yang dilakukan otomatis oleh fungsi `login()` Django) dan tidak pernah mengirimkan *session key* secara langsung melalui JSON.
+
+## Bagaimana AJAX mempengaruhi pengalaman pengguna (User Experience) pada website?
+- **Interaksi *Real-time***: Fitur-fitur seperti *live search*, *in-place editing*, atau *rating* dapat diperbarui tanpa jeda *reload*, memberikan kesan responsivitas yang tinggi.
+* **Mempertahankan Konteks**: Pengguna tidak kehilangan posisi *scroll* atau fokus mereka karena tidak ada pemuatan ulang halaman penuh, sehingga navigasi terasa mulus.
+* **Pemuatan Asinkron**: AJAX memungkinkan pemuatan konten yang membutuhkan waktu lama (misalnya, galeri gambar atau komentar) di latar belakang, membiarkan konten utama segera terlihat, yang secara psikologis membuat waktu tunggu terasa lebih singkat.
+* **Umpan Balik Visual yang Lebih Baik**: Pengembang dapat dengan mudah mengimplementasikan *loading spinners*, *progress bars*, atau *toast notifications* (seperti yang kita gunakan) untuk memberikan *feedback* visual yang jelas kepada pengguna tentang status permintaan yang sedang berlangsung.
+
 </details>
