@@ -732,6 +732,8 @@ AJAX memungkinkan pertukaran data antara *browser* dan *server* Django tanpa men
 6.  **Client Handling:** JavaScript menerima data JSON.
 7.  **DOM Manipulation:** JavaScript memproses data JSON tersebut dan secara dinamis memperbarui elemen HTML yang relevan di halaman (*client-side rendering*).
 
+Jadi, sebuah event dari aksi pengguna di browser memicu JavaScript untuk mengirimkan permintaan `HTTP` ke sebuah URL Django secara background. Di sisi server, Django akan menjalankan fungsi `view` yang sesuai untuk memproses permintaan tersebut. Alih-alih merender template HTML, view ini secara spesifik mengembalikan respons yang berisi data murni dalam format JSON.
+
 ## Apa keuntungan menggunakan AJAX dibandingkan render biasa di Django?
 Penggunaan AJAX secara signifikan meningkatkan efisiensi dan pengalaman pengguna:
 

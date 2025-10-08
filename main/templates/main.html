@@ -116,253 +116,253 @@
 </style>
 
 <script>
-// Configuration
-const PRODUCTS_API_ENDPOINT = "{% url 'main:show_json' %}";  // Adjusted to match your 'show_json' API endpoint for products
-const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";  // To filter "My Product" based on the current user
+  // Configuration
+  const PRODUCTS_API_ENDPOINT = "{% url 'main:show_json' %}";  // Adjusted to match your 'show_json' API endpoint for products
+  const CURRENT_USER_ID = "{{ user.id|default_if_none:'' }}";  // To filter "My Product" based on the current user
 
-function getFilterFromURL() {
-    const urlParams = new URLSearchParams(window.location.search);
-    return urlParams.get('filter') || 'all'; 
-}
+  function getFilterFromURL() {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get('filter') || 'all'; 
+  }
 
-// DOM Elements
-const loadingSpinner = document.getElementById('loading');
-const errorMessage = document.getElementById('error');
-const emptyStateDisplay = document.getElementById('empty');
-const productsGridContainer = document.getElementById('grid');
-const showAllProductsButton = document.getElementById('filter-all');
-const showMyProductsButton = document.getElementById('filter-my');
-const refreshButton = document.getElementById('refresh-products-btn'); 
+  // DOM Elements
+  const loadingSpinner = document.getElementById('loading');
+  const errorMessage = document.getElementById('error');
+  const emptyStateDisplay = document.getElementById('empty');
+  const productsGridContainer = document.getElementById('grid');
+  const showAllProductsButton = document.getElementById('filter-all');
+  const showMyProductsButton = document.getElementById('filter-my');
+  const refreshButton = document.getElementById('refresh-products-btn'); 
 
-// State Variables
-let activeFilter = getFilterFromURL(); // Default filter set to 'all'
-let allProductsData = [];
+  // State Variables
+  let activeFilter = getFilterFromURL(); // Default filter set to 'all'
+  let allProductsData = [];
 
-// Update filter button appearance
-function updateFilterButtonsAppearance() {
-    if (!showAllProductsButton || !showMyProductsButton) return;
+  // Update filter button appearance
+  function updateFilterButtonsAppearance() {
+      if (!showAllProductsButton || !showMyProductsButton) return;
+      
+      showAllProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-50';
+      showMyProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-50';
+
+      if (activeFilter === 'all' || activeFilter === 'featured') {
+          showAllProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
+      } else if (activeFilter === 'my') {
+          showMyProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
+      } else {
+          showAllProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
+      }
+  }
+
+  // Show/hide page sections
+  function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+    loadingSpinner.classList.toggle('hidden', !showLoading);
+    errorMessage.classList.toggle('hidden', !showError);
+    emptyStateDisplay.classList.toggle('hidden', !showEmpty);
+    productsGridContainer.classList.toggle('hidden', !showGrid);
     
-    showAllProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-50';
-    showMyProductsButton.className = 'bg-white text-gray-700 border border-gray-300 px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-50';
-
-    if (activeFilter === 'all' || activeFilter === 'featured') {
-        showAllProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
-    } else if (activeFilter === 'my') {
-        showMyProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
-    } else {
-        showAllProductsButton.className = 'bg-gray-900 text-white px-4 py-2 rounded-md font-medium transition-colors hover:bg-gray-800';
+    if (showGrid) {
+      productsGridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
     }
-}
-
-// Show/hide page sections
-function displayPageSection({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
-  loadingSpinner.classList.toggle('hidden', !showLoading);
-  errorMessage.classList.toggle('hidden', !showError);
-  emptyStateDisplay.classList.toggle('hidden', !showEmpty);
-  productsGridContainer.classList.toggle('hidden', !showGrid);
-  
-  if (showGrid) {
-    productsGridContainer.className = 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6';
-  }
-}
-
-// Get readable category name
-function getReadableCategoryName(categoryCode) {
-  const categoryMapping = {
-    jersey: 'Jersey',
-    shoes: 'Shoes',
-    ball: 'Ball',
-    accessory: 'Accessory',
-    training: 'Training',
-    nutrition: 'Nutrition',
-    merchandise: 'Merchandise',
-  };
-  return categoryMapping[categoryCode] || categoryCode;
-}
-
-// Build product card element
-function buildProductCardElement(productItem) {
-  const articleElement = document.createElement('article');
-  articleElement.className = 'group bg-white rounded-lg border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col';
-
-  const detailLink = `/product/${productItem.id}/`;
-  
-  const formattedDate = new Date(productItem.created_at).toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'short', 
-    day: 'numeric' 
-  });
-
-  const categoryLabel = getReadableCategoryName(productItem.category); // Directly use category
-  const isFeatured = productItem.is_featured;
-  const isHot = productItem.is_product_hot;
-
-  const thumbnailHtml = productItem.thumbnail 
-    ? `<img src='${productItem.thumbnail}' alt='${productItem.name}' class='w-full h-full object-cover'>` 
-    : `<div class='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'></div>`;
-
-  const featuredBadge = isFeatured 
-    ? `<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800'>Featured</span>` 
-    : '';
-  const hotBadge = isHot 
-    ? `<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800'>Hot</span>` 
-    : '';
-
-  const editDeleteButtons = CURRENT_USER_ID && Number(CURRENT_USER_ID) === Number(productItem.user_id)
-    ? `<div class='flex space-x-2'>
-        <button class='text-gray-600 hover:text-gray-700 text-sm transition-colors edit-btn' data-id='${productItem.id}'>Edit</button>
-        <button class='text-red-600 hover:text-red-700 text-sm transition-colors delete-btn' data-id='${productItem.id}'>Delete</button>
-      </div>` : '';
-
-  const completeCardHtml = `
-    <div class="aspect-[16/9] relative overflow-hidden">
-      ${thumbnailHtml}
-      <div class="absolute top-3 left-3">
-        <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-700 text-white">${categoryLabel}</span>
-      </div>
-      <div class="absolute top-3 right-3 flex space-x-2">
-        ${featuredBadge}
-        ${hotBadge}
-      </div>
-    </div>
-    <div class="p-5 flex flex-col flex-1">
-      <div class="flex items-center text-sm text-gray-500 mb-3">
-        <time>${formattedDate}</time>
-        <span class="mx-2">•</span>
-        <span>${productItem.product_views} views</span>
-      </div>
-      <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight">
-        <a href="${detailLink}" class="hover:text-[#b02a29] transition-colors">${productItem.name}</a>
-      </h3>
-      <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">${productItem.description}</p>
-      <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
-        <a href="${detailLink}" class="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">View Product</a>
-        ${editDeleteButtons}
-      </div>
-    </div>
-  `;
-
-  articleElement.innerHTML = completeCardHtml;
-  return articleElement;
-}
-
-// Render all product cards
-function renderAllProductCards(productItems) {
-  productsGridContainer.innerHTML = '';
-  productItems.forEach(productItem => {
-    const cardElement = buildProductCardElement(productItem);
-    productsGridContainer.appendChild(cardElement);
-  });
-}
-
-// Filter and display products
-function filterAndDisplayProducts() {
-  updateFilterButtonsAppearance();
-  
-let filteredProducts;
-
-  if (activeFilter === 'all') {
-    filteredProducts = allProductsData;
-  } else if (activeFilter === 'my') {
-    filteredProducts = allProductsData.filter(product => Number(product.user_id) === Number(CURRENT_USER_ID));
-  } else if (activeFilter === 'featured') {
-    filteredProducts = allProductsData.filter(product => product.is_featured === true);
-  } else {
-     filteredProducts = allProductsData;
   }
 
-  if (filteredProducts.length === 0) {
-    displayPageSection({ showEmpty: true });
-  } else {
-    renderAllProductCards(filteredProducts);
-    displayPageSection({ showGrid: true });
+  // Get readable category name
+  function getReadableCategoryName(categoryCode) {
+    const categoryMapping = {
+      jersey: 'Jersey',
+      shoes: 'Shoes',
+      ball: 'Ball',
+      accessory: 'Accessory',
+      training: 'Training',
+      nutrition: 'Nutrition',
+      merchandise: 'Merchandise',
+    };
+    return categoryMapping[categoryCode] || categoryCode;
   }
-}
 
-// Fetch products data from server
-async function fetchProductsFromServer() {
-  try {
-    displayPageSection({ showLoading: true });
+  // Build product card element
+  function buildProductCardElement(productItem) {
+    const articleElement = document.createElement('article');
+    articleElement.className = 'group bg-white rounded-lg border border-gray-200 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col';
+
+    const detailLink = `/product/${productItem.id}/`;
     
-    const response = await fetch(PRODUCTS_API_ENDPOINT, {
-      headers: { 'Accept': 'application/json' },
+    const formattedDate = new Date(productItem.created_at).toLocaleDateString('en-US', { 
+      year: 'numeric', 
+      month: 'short', 
+      day: 'numeric' 
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to fetch products data from server');
-    }
+    const categoryLabel = getReadableCategoryName(productItem.category); // Directly use category
+    const isFeatured = productItem.is_featured;
+    const isHot = productItem.is_product_hot;
 
-    const productsData = await response.json();
-    allProductsData = productsData || [];
+    const thumbnailHtml = productItem.thumbnail 
+      ? `<img src='${productItem.thumbnail}' alt='${productItem.name}' class='w-full h-full object-cover'>` 
+      : `<div class='w-full h-full bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center'></div>`;
+
+    const featuredBadge = isFeatured 
+      ? `<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-yellow-100 text-yellow-800'>Featured</span>` 
+      : '';
+    const hotBadge = isHot 
+      ? `<span class='inline-flex items-center px-2 py-1 rounded text-xs font-medium bg-red-100 text-red-800'>Hot</span>` 
+      : '';
+
+    const editDeleteButtons = CURRENT_USER_ID && Number(CURRENT_USER_ID) === Number(productItem.user_id)
+      ? `<div class='flex space-x-2'>
+          <button class='text-gray-600 hover:text-gray-700 text-sm transition-colors edit-btn' data-id='${productItem.id}'>Edit</button>
+          <button class='text-red-600 hover:text-red-700 text-sm transition-colors delete-btn' data-id='${productItem.id}'>Delete</button>
+        </div>` : '';
+
+    const completeCardHtml = `
+      <div class="aspect-[16/9] relative overflow-hidden">
+        ${thumbnailHtml}
+        <div class="absolute top-3 left-3">
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-md text-xs font-medium bg-gray-700 text-white">${categoryLabel}</span>
+        </div>
+        <div class="absolute top-3 right-3 flex space-x-2">
+          ${featuredBadge}
+          ${hotBadge}
+        </div>
+      </div>
+      <div class="p-5 flex flex-col flex-1">
+        <div class="flex items-center text-sm text-gray-500 mb-3">
+          <time>${formattedDate}</time>
+          <span class="mx-2">•</span>
+          <span>${productItem.product_views} views</span>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-900 mb-3 line-clamp-2 leading-tight">
+          <a href="${detailLink}" class="hover:text-[#b02a29] transition-colors">${productItem.name}</a>
+        </h3>
+        <p class="text-gray-600 text-sm leading-relaxed line-clamp-3 mb-4">${productItem.description}</p>
+        <div class="pt-4 border-t border-gray-100 flex items-center justify-between">
+          <a href="${detailLink}" class="text-gray-600 hover:text-gray-900 font-medium text-sm transition-colors">View Product</a>
+          ${editDeleteButtons}
+        </div>
+      </div>
+    `;
+
+    articleElement.innerHTML = completeCardHtml;
+    return articleElement;
+  }
+
+  // Render all product cards
+  function renderAllProductCards(productItems) {
+    productsGridContainer.innerHTML = '';
+    productItems.forEach(productItem => {
+      const cardElement = buildProductCardElement(productItem);
+      productsGridContainer.appendChild(cardElement);
+    });
+  }
+
+  // Filter and display products
+  function filterAndDisplayProducts() {
+    updateFilterButtonsAppearance();
     
-    filterAndDisplayProducts();
-  } catch (error) {
-    console.error('Error loading products:', error);
-    displayPageSection({ showError: true });
-  }
-}
+  let filteredProducts;
 
-// Event handlers for filter buttons
-function handleShowAllProductsClick() {
-  activeFilter = 'all';
-  filterAndDisplayProducts();
-}
-
-function handleShowMyProductsClick() {
-  activeFilter = 'my';
-  filterAndDisplayProducts();
-}
-
-// Initialize page
-function initializeProductsPage() {
-  showAllProductsButton.addEventListener('click', handleShowAllProductsClick);
-  showMyProductsButton.addEventListener('click', handleShowMyProductsClick);
-  if (refreshButton) { 
-        refreshButton.addEventListener('click', handleRefreshProductsClick);
-  }
-  fetchProductsFromServer();
-}
-
-function handleRefreshProductsClick() {
-    fetchProductsFromServer();
-    if (typeof showToast !== 'undefined') {
-        showToast('Refreshing', 'Fetching the latest product list...', 'normal', 1500);
+    if (activeFilter === 'all') {
+      filteredProducts = allProductsData;
+    } else if (activeFilter === 'my') {
+      filteredProducts = allProductsData.filter(product => Number(product.user_id) === Number(CURRENT_USER_ID));
+    } else if (activeFilter === 'featured') {
+      filteredProducts = allProductsData.filter(product => product.is_featured === true);
+    } else {
+      filteredProducts = allProductsData;
     }
-}
 
-// Start the application
-initializeProductsPage();
+    if (filteredProducts.length === 0) {
+      displayPageSection({ showEmpty: true });
+    } else {
+      renderAllProductCards(filteredProducts);
+      displayPageSection({ showGrid: true });
+    }
+  }
 
-// Add event listener to detect new news
-document.addEventListener('productAdded', function() {
+  // Fetch products data from server
+  async function fetchProductsFromServer() {
+    try {
+      displayPageSection({ showLoading: true });
+      
+      const response = await fetch(PRODUCTS_API_ENDPOINT, {
+        headers: { 'Accept': 'application/json' },
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch products data from server');
+      }
+
+      const productsData = await response.json();
+      allProductsData = productsData || [];
+      
+      filterAndDisplayProducts();
+    } catch (error) {
+      console.error('Error loading products:', error);
+      displayPageSection({ showError: true });
+    }
+  }
+
+  // Event handlers for filter buttons
+  function handleShowAllProductsClick() {
+    activeFilter = 'all';
+    filterAndDisplayProducts();
+  }
+
+  function handleShowMyProductsClick() {
+    activeFilter = 'my';
+    filterAndDisplayProducts();
+  }
+
+  // Initialize page
+  function initializeProductsPage() {
     showAllProductsButton.addEventListener('click', handleShowAllProductsClick);
     showMyProductsButton.addEventListener('click', handleShowMyProductsClick);
-    if (refreshButton) {
+    if (refreshButton) { 
           refreshButton.addEventListener('click', handleRefreshProductsClick);
-      }
-    // Refresh data without page reload
+    }
     fetchProductsFromServer();
-});
+  }
 
-productsGridContainer.addEventListener('click', async function(e) {
-    const target = e.target;
+  function handleRefreshProductsClick() {
+      fetchProductsFromServer();
+      if (typeof showToast !== 'undefined') {
+          showToast('Refreshing', 'Fetching the latest product list...', 'normal', 1500);
+      }
+  }
 
-    if (target && target.classList.contains('edit-btn')) {
-        const productId = target.dataset.id;  
+  // Start the application
+  initializeProductsPage();
 
-        if (!productId) {
-            console.error('Product ID is missing!');
-            return;
+  // Add event listener to detect new news
+  document.addEventListener('productAdded', function() {
+      showAllProductsButton.addEventListener('click', handleShowAllProductsClick);
+      showMyProductsButton.addEventListener('click', handleShowMyProductsClick);
+      if (refreshButton) {
+            refreshButton.addEventListener('click', handleRefreshProductsClick);
         }
+      // Refresh data without page reload
+      fetchProductsFromServer();
+  });
 
-        showEditModal(productId); 
-    }
-    
-    if (target && target.classList.contains('delete-btn')) {
-        const productId = target.dataset.id; 
-        showDeleteModal(productId);
-    }
-});
+  productsGridContainer.addEventListener('click', async function(e) {
+      const target = e.target;
+
+      if (target && target.classList.contains('edit-btn')) {
+          const productId = target.dataset.id;  
+
+          if (!productId) {
+              console.error('Product ID is missing!');
+              return;
+          }
+
+          showEditModal(productId); 
+      }
+      
+      if (target && target.classList.contains('delete-btn')) {
+          const productId = target.dataset.id; 
+          showDeleteModal(productId);
+      }
+  });
 </script>
 
 {% endblock content %}

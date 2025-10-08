@@ -61,129 +61,129 @@
 </div>
 
 <script>
-// Configuration
-const PRODUCT_ID = "{{ product.id }}";
-const CURRENT_USER_ID = "{{ request.user.id|default_if_none:'' }}";
-const PRODUCT_DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
+  // Configuration
+  const PRODUCT_ID = "{{ product.id }}";
+  const CURRENT_USER_ID = "{{ request.user.id|default_if_none:'' }}";
+  const PRODUCT_DETAIL_ENDPOINT = `{% url 'main:show_json_by_id' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', PRODUCT_ID);
 
-// DOM Elements
-const loadingState = document.getElementById('loading-state');
-const errorState = document.getElementById('error-state');
-const productContent = document.getElementById('product-content');
+  // DOM Elements
+  const loadingState = document.getElementById('loading-state');
+  const errorState = document.getElementById('error-state');
+  const productContent = document.getElementById('product-content');
 
-// Content Placeholders
-const productBadgesContainer = document.getElementById('product-badges-container');
-const productName = document.getElementById('product-name');
-const productCreatedAt = document.getElementById('product-created-at');
-const productViews = document.getElementById('product-views');
-const productBrand = document.getElementById('product-brand');
-const productSize = document.getElementById('product-size');
-const productStock = document.getElementById('product-stock');
-const productImageContainer = document.getElementById('product-image-container');
-const productThumbnail = document.getElementById('product-thumbnail');
-const productPrice = document.getElementById('product-price');
-const productDescription = document.getElementById('product-description');
-const productAuthor = document.getElementById('product-author');
-const actionButtonsContainer = document.getElementById('action-buttons-container');
+  // Content Placeholders
+  const productBadgesContainer = document.getElementById('product-badges-container');
+  const productName = document.getElementById('product-name');
+  const productCreatedAt = document.getElementById('product-created-at');
+  const productViews = document.getElementById('product-views');
+  const productBrand = document.getElementById('product-brand');
+  const productSize = document.getElementById('product-size');
+  const productStock = document.getElementById('product-stock');
+  const productImageContainer = document.getElementById('product-image-container');
+  const productThumbnail = document.getElementById('product-thumbnail');
+  const productPrice = document.getElementById('product-price');
+  const productDescription = document.getElementById('product-description');
+  const productAuthor = document.getElementById('product-author');
+  const actionButtonsContainer = document.getElementById('action-buttons-container');
 
-// Show/hide page sections
-function showState(state) {
-    loadingState.classList.toggle('hidden', state !== 'loading');
-    errorState.classList.toggle('hidden', state !== 'error');
-    productContent.classList.toggle('hidden', state !== 'ready');
-}
+  // Show/hide page sections
+  function showState(state) {
+      loadingState.classList.toggle('hidden', state !== 'loading');
+      errorState.classList.toggle('hidden', state !== 'error');
+      productContent.classList.toggle('hidden', state !== 'ready');
+  }
 
-// Function to get readable category name
-function getCategoryLabel(categoryCode) {
-    const categoryMapping = {
-        jersey: 'Jersey', shoes: 'Shoes', ball: 'Ball', accessory: 'Accessory',
-        training: 'Training Equipment', nutrition: 'Sports Nutrition', merchandise: 'Merchandise',
-    };
-    return categoryMapping[categoryCode] || categoryCode;
-}
+  // Function to get readable category name
+  function getCategoryLabel(categoryCode) {
+      const categoryMapping = {
+          jersey: 'Jersey', shoes: 'Shoes', ball: 'Ball', accessory: 'Accessory',
+          training: 'Training Equipment', nutrition: 'Sports Nutrition', merchandise: 'Merchandise',
+      };
+      return categoryMapping[categoryCode] || categoryCode;
+  }
 
-// Render product content into the DOM
-function renderProduct(product) {
-    document.title = product.name;
-    productName.textContent = product.name;
+  // Render product content into the DOM
+  function renderProduct(product) {
+      document.title = product.name;
+      productName.textContent = product.name;
 
-    productBadgesContainer.innerHTML = '';
-    const categoryBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-900 text-white">${getCategoryLabel(product.category)}</span>`;
-    productBadgesContainer.insertAdjacentHTML('beforeend', categoryBadge);
+      productBadgesContainer.innerHTML = '';
+      const categoryBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-gray-900 text-white">${getCategoryLabel(product.category)}</span>`;
+      productBadgesContainer.insertAdjacentHTML('beforeend', categoryBadge);
 
-    if (product.is_featured) {
-        const featuredBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>`;
-        productBadgesContainer.insertAdjacentHTML('beforeend', featuredBadge);
-    }
+      if (product.is_featured) {
+          const featuredBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-yellow-100 text-yellow-800">Featured</span>`;
+          productBadgesContainer.insertAdjacentHTML('beforeend', featuredBadge);
+      }
 
-    if (product.product_views > 20) {
-        const hotBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800">Hot</span>`;
-        productBadgesContainer.insertAdjacentHTML('beforeend', hotBadge);
-    }
+      if (product.product_views > 20) {
+          const hotBadge = `<span class="inline-flex items-center px-3 py-1 rounded-md text-xs font-medium bg-red-100 text-red-800">Hot</span>`;
+          productBadgesContainer.insertAdjacentHTML('beforeend', hotBadge);
+      }
 
-    const formattedDate = new Date(product.created_at).toLocaleString('en-GB', {
-      day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
-    });
-    productCreatedAt.textContent = formattedDate;
-    productViews.textContent = `${product.product_views} views`;
-    productBrand.textContent = product.brand ? `Brand: ${product.brand}` : '';
-    productSize.textContent = `Size: ${product.size}`;
-    productStock.textContent = `Stock: ${product.stock}`;
+      const formattedDate = new Date(product.created_at).toLocaleString('en-GB', {
+        day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit'
+      });
+      productCreatedAt.textContent = formattedDate;
+      productViews.textContent = `${product.product_views} views`;
+      productBrand.textContent = product.brand ? `Brand: ${product.brand}` : '';
+      productSize.textContent = `Size: ${product.size}`;
+      productStock.textContent = `Stock: ${product.stock}`;
 
-    if (product.thumbnail) {
-        productThumbnail.src = product.thumbnail;
-        productThumbnail.alt = product.name;
-        productImageContainer.classList.remove('hidden');
-    }
+      if (product.thumbnail) {
+          productThumbnail.src = product.thumbnail;
+          productThumbnail.alt = product.name;
+          productImageContainer.classList.remove('hidden');
+      }
 
-    productPrice.textContent = `Rp ${product.price.toLocaleString('id-ID')}`;
-    productDescription.textContent = product.description;
-    productAuthor.textContent = product.user_username ? `Author: ${product.user_username}` : 'Author: Anonymous';
-    actionButtonsContainer.innerHTML = '';
-    const refreshLink = `<a href="${window.location.href}" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">Refresh</a>`;
-    actionButtonsContainer.insertAdjacentHTML('beforeend', refreshLink);
+      productPrice.textContent = `Rp ${product.price.toLocaleString('id-ID')}`;
+      productDescription.textContent = product.description;
+      productAuthor.textContent = product.user_username ? `Author: ${product.user_username}` : 'Author: Anonymous';
+      actionButtonsContainer.innerHTML = '';
+      const refreshLink = `<a href="${window.location.href}" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-100">Refresh</a>`;
+      actionButtonsContainer.insertAdjacentHTML('beforeend', refreshLink);
 
-    if (CURRENT_USER_ID && Number(product.user) === Number(CURRENT_USER_ID)) {
-      const editUrl = `{% url 'main:edit_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
-      const deleteUrl = `{% url 'main:delete_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
-      
-      const editButton = `<a href="${editUrl}" class="px-4 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Edit</a>`;
-      const deleteButton = `<a href="${deleteUrl}" class="px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50">Delete</a>`;
-
-      actionButtonsContainer.insertAdjacentHTML('beforeend', editButton);
-      actionButtonsContainer.insertAdjacentHTML('beforeend', deleteButton);
-    }
-}
-
-// Fetch product detail from the server
-async function loadProductDetail() {
-    try {
-        showState('loading');
+      if (CURRENT_USER_ID && Number(product.user) === Number(CURRENT_USER_ID)) {
+        const editUrl = `{% url 'main:edit_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
+        const deleteUrl = `{% url 'main:delete_product' '00000000-0000-0000-0000-000000000000' %}`.replace('00000000-0000-0000-0000-000000000000', product.id);
         
-        const response = await fetch(PRODUCT_DETAIL_ENDPOINT);
+        const editButton = `<a href="${editUrl}" class="px-4 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Edit</a>`;
+        const deleteButton = `<a href="${deleteUrl}" class="px-4 py-2 rounded-md border border-red-300 text-red-600 hover:bg-red-50">Delete</a>`;
 
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        actionButtonsContainer.insertAdjacentHTML('beforeend', editButton);
+        actionButtonsContainer.insertAdjacentHTML('beforeend', deleteButton);
+      }
+  }
 
-        const productData = await response.json();
-        const product = Array.isArray(productData) && productData.length > 0 ? productData[0].fields : productData;
-        
-        if (Array.isArray(productData) && productData.length > 0) {
-            product.id = productData[0].pk;
-        }
+  // Fetch product detail from the server
+  async function loadProductDetail() {
+      try {
+          showState('loading');
+          
+          const response = await fetch(PRODUCT_DETAIL_ENDPOINT);
 
-        renderProduct(product);
-        showState('ready');
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
 
-    } catch (error) {
-        console.error('Error loading product detail:', error);
-        showState('error');
-    }
-}
+          const productData = await response.json();
+          const product = Array.isArray(productData) && productData.length > 0 ? productData[0].fields : productData;
+          
+          if (Array.isArray(productData) && productData.length > 0) {
+              product.id = productData[0].pk;
+          }
 
-// Initialize the page load
-loadProductDetail();
+          renderProduct(product);
+          showState('ready');
+
+      } catch (error) {
+          console.error('Error loading product detail:', error);
+          showState('error');
+      }
+  }
+
+  // Initialize the page load
+  loadProductDetail();
 </script>
 
 {% endblock content %}

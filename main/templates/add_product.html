@@ -5,7 +5,8 @@
 {% include 'navbar.html' %}
 <div class="bg-gray-50 w-full min-h-screen pt-20">
   <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">← Back to Products</a>
+    <a href="{% url 'main:show_main' %}" class="text-gray-600 hover:text-gray-900 font-medium transition-colors">← Back
+      to Products</a>
 
     <div class="bg-white rounded-lg border border-gray-200 p-6 sm:p-8 form-style mt-6">
       <div class="mb-6">
@@ -16,17 +17,20 @@
       <form method="POST" class="space-y-6">
         {% csrf_token %}
         {% for field in form %}
-          <div>
-            <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ field.label }}</label>
-            {{ field }}
-            {% if field.help_text %}<p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>{% endif %}
-            {% for error in field.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
-          </div>
+        <div>
+          <label for="{{ field.id_for_label }}" class="block text-sm font-medium text-gray-700 mb-2">{{ field.label
+            }}</label>
+          {{ field }}
+          {% if field.help_text %}<p class="mt-1 text-sm text-gray-500">{{ field.help_text }}</p>{% endif %}
+          {% for error in field.errors %}<p class="mt-1 text-sm text-red-600">{{ error }}</p>{% endfor %}
+        </div>
         {% endfor %}
 
         <div class="flex gap-3 pt-4 border-t border-gray-200">
-          <a href="{% url 'main:show_main' %}" class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</a>
-          <button type="submit" class="px-5 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Add Product</button>
+          <a href="{% url 'main:show_main' %}"
+            class="px-4 py-2 rounded-md border border-gray-300 text-gray-700 hover:bg-gray-50">Cancel</a>
+          <button type="submit" class="px-5 py-2 rounded-md bg-gray-900 hover:bg-gray-800 text-white">Add
+            Product</button>
         </div>
       </form>
     </div>
